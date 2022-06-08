@@ -6,10 +6,10 @@ from flask_sqlalchemy import SQLAlchemy
 from config import config
 
 app=Flask(__name__)
+app.config.from_object(config)
 bootstrap=Bootstrap(app)
 db=SQLAlchemy(app)
 
-app.config.from_object(config)
 
 @app.route('/')
 def index():
