@@ -9,6 +9,7 @@ from config import config
 from forms import RegisterForm
 from urllib.parse import parse_qs
 import urllib.parse as urlparse
+import os
 app=Flask(__name__)
 app.config.from_object(config)
 bootstrap=Bootstrap(app)
@@ -28,7 +29,6 @@ def register():
     # print(parse_qs(parsed.query)['username'][0])
     if groupQuery:
         form.username.data=parse_qs(parsed.query)['username'][0]
-    # form.username.data='ryrytry'
     if form.validate_on_submit():
         pass
     return render_template('register.html',form=form)
