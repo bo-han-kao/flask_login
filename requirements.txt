@@ -2,4 +2,5 @@ flask
 Flask-Bootstrap4
 flask-sqlalchemy
 Flask-WTF
+Flask-Bcrypt
 email-validator

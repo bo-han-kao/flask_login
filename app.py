@@ -1,20 +1,25 @@
+import email
 from ensurepip import bootstrap
 from tkinter.tix import Form
 from turtle import title
 from wsgiref import validate
-from flask import Flask,render_template,request
+from flask import Flask, flash,render_template,request
 from flask_bootstrap import Bootstrap
 from flask_sqlalchemy import SQLAlchemy
-from config import config
-from forms import RegisterForm
 from urllib.parse import parse_qs
 import urllib.parse as urlparse
-import os
+from flask_bcrypt import Bcrypt
+
+from config import config
+from forms import RegisterForm
+from models import User
+
+
 app=Flask(__name__)
 app.config.from_object(config)
 bootstrap=Bootstrap(app)
 db=SQLAlchemy(app)
-
+bcrypt = Bcrypt(app)
 
 @app.route('/')
 def index():
@@ -30,7 +35,13 @@ def register():
     if groupQuery:
         form.username.data=parse_qs(parsed.query)['username'][0]
     if form.validate_on_submit():
-        pass
+        username=form.username.data
+        password=bcrypt.generate_password_hash(form.password.data)
+        print(username,password)
+        # user=User(username=username,password=password)
+        # db.session.add(user)
+        # db.session.commit()
+        # flash('registeration success',category='sucrss')
     return render_template('register.html',form=form)
 
 if __name__=='__main__':
