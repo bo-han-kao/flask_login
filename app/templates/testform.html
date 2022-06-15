@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{%block app_content%}
+<h1 class="pt-5">MQTT_TEST_DATA</h1>
+<div class="row">
+    <div class="col-md-8">
+        <form action="/testform" method="post">
+            <div class="form-group">
+                <label>G1_mac</label>
+                <input  type="text" class="form-control" id="" name="mac">
+                <label>ip</label>
+                <input  type="text" class="form-control" id="" name="ip">
+            </div>
+            <button type="submit" class="btn btn-primary">送出</button>
+        </form>
+    </div>
+</div>
+{%endblock%}

@@ -46,7 +46,7 @@ def logout():
     session.pop('user',None)
     return redirect(url_for('login'))
 
-
+#待修改
 @app.route('/register',methods=['POST','GET'])
 def register():
     front_end_data={'UserNameText':''}
@@ -132,5 +132,12 @@ def line_notify_test():
         print('1234')
         return redirect(url_for('line_notify'))
 
-       
-   
+@app.route('/testform',methods=['POST','GET'])
+def testform():
+    if request.method == 'POST':
+        G1_mac=request.form['mac']
+        ip=request.form['ip']
+        User.query.filter_by(username=session['user']).update({'G1_mac':G1_mac,'ip':ip})
+        db.session.commit()
+        print(G1_mac,ip)
+    return render_template('testform.html')
