@@ -4,3 +4,5 @@ flask-sqlalchemy
 Flask-WTF
 Flask-Bcrypt
 email-validator
+requests
+flask_cors
