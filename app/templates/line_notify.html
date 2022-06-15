@@ -1,9 +1,9 @@
 {% extends 'base.html' %}
 {%block app_content%}
 {{super()}}
-<script src="{{url_for('static',filename='js/line_notify.js')}}"></script>
 {%if tokenState=='None'%}
-<a
+
+<a id="line_bind1"
     href="https://notify-bot.line.me/oauth/authorize?response_type=code&client_id=damgGNEOW7TW6vBtxoCWtt&redirect_uri=http://10.10.10.126:5000/line_notify_bind&scope=notify&state=NO_STATE">
     <button type="submit" class="btn btn-primary" id="line_bind">綁定line</button>
 </a>
@@ -13,5 +13,8 @@
 </a>
 
 {%endif%}
+<script src="{{url_for('static',filename='js/line_notify.js')}}"></script>
+{%endblock%}
+{%block footer_content%}
 
 {%endblock%}

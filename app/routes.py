@@ -11,7 +11,7 @@ import json
 
 @app.route('/')
 def index():
-
+    print()
     return render_template('index.html')
 
 @app.route('/login',methods=['POST','GET'])
@@ -71,7 +71,6 @@ def register():
                 db.session.commit()
                 print("恭喜註冊成功")
                 return redirect(url_for('login'))
-    
     print('88888')
     return render_template('register.html',UserNameText=front_end_data['UserNameText'])
 
@@ -139,5 +138,4 @@ def testform():
         ip=request.form['ip']
         User.query.filter_by(username=session['user']).update({'G1_mac':G1_mac,'ip':ip})
         db.session.commit()
-        print(G1_mac,ip)
     return render_template('testform.html')
