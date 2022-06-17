@@ -168,3 +168,8 @@ def testform():
         User.query.filter_by(username=session['user']).update({'G1_mac':G1_mac,'ip':ip})
         db.session.commit()
     return render_template('testform.html')
+
+
+@app.route('/html5_qrcode',methods=['GET'])
+def html5_qrcode():
+    return render_template('html5_qrcode.html')

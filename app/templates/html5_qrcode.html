@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{%block app_content%}
+{{super()}}
+
+
+<div class="row">
+    <div id="reader" style="width: 400px;height: 400px;background-color: aqua;" > </div>
+</div>
+
+
+{%endblock%}
+{%block js_content%}
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+<script src="{{url_for('static',filename='js/html5_qrcode.js')}}"></script>
+{%endblock%}
