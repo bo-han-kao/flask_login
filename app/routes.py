@@ -1,3 +1,4 @@
+from pickle import FALSE
 from flask import Flask, flash,render_template,request,redirect,url_for,session
 from urllib.parse import parse_qs
 import urllib.parse as urlparse
@@ -11,11 +12,24 @@ import json
 
 @app.route('/')
 def index():
-    print()
     return render_template('index.html')
 
 @app.route('/login',methods=['POST','GET'])
 def login():
+    # 網址資訊
+    parsed = urlparse.urlparse(request.url)
+    # 看網址是否含LINE_UUID參數
+    groupQuery = 'LINE_UUID' in parse_qs(parsed.query)
+    print(groupQuery)
+    if groupQuery == True:
+        # 取得line_uuid
+        line_uuid=parsed.query.split('=')[1]
+        db_line_uuid=User.query.filter_by(Line_uuid=line_uuid).first()
+        print(db_line_uuid)
+        if str(db_line_uuid)=='None':
+            print('沒有line id')
+            return redirect(url_for('register',LINE_UUID=line_uuid))
+
     if request.method == 'POST':
         user=request.form['user']
         password=request.form['password']
@@ -24,12 +38,12 @@ def login():
         # 判斷帳號密碼是否輸入正確
         if user and bcrypt.check_password_hash(user.password,password):
             print('登入成功',user.username)
-            
             session['user'] = user.username
             return redirect(url_for('user'))
         else:
             print('登入失敗')
             return render_template('login.html',login_state='登入失敗')
+    
     return render_template('login.html')
 
 
@@ -49,30 +63,40 @@ def logout():
 #待修改
 @app.route('/register',methods=['POST','GET'])
 def register():
-    front_end_data={'UserNameText':''}
+    # 網址資訊
+    parsed = urlparse.urlparse(request.url)
+    groupQuery = 'LINE_UUID' in parse_qs(parsed.query)
+    line_uuid = False
+    print(groupQuery)
+    if groupQuery==True:
+        line_uuid=parsed.query.split('=')[1]
+    
     if request.method == 'POST':
-        # username = request.form['username']
-        # parsed = urlparse.urlparse(request.url)
-        # groupQuery = 'username' in parse_qs(parsed.query)
-        # print(groupQuery)
-        if True:
-            front_end_data['UserNameText']='username'
-            user=request.form['user']
-            password=request.form['password']
-            print(user,password)
-            # 有重複user處理
-            if User.query.filter_by(username=user).first():
-                print("重複user")
+        
+        user=request.form['user']
+        password=request.form['password']
+        print(user,password,groupQuery)
+        # 有重複user處理
+        if User.query.filter_by(username=user).first():
+            print(parsed)
+            if line_uuid:
+                return render_template('register.html',register_state='名稱已被註冊',line_uuid=line_uuid)
+
+        else:
+            # 對密碼加密(hash)
+            password=bcrypt.generate_password_hash(password).decode('utf-8')
+            if line_uuid:
+                line_uuid=request.form['Line_uuid']
+                user=User(username=user,password=password,Line_uuid=line_uuid)
             else:
-                # 對密碼加密(hash)
-                password=bcrypt.generate_password_hash(password).decode('utf-8')
                 user=User(username=user,password=password)
-                db.session.add(user)
-                db.session.commit()
-                print("恭喜註冊成功")
-                return redirect(url_for('login'))
-    print('88888')
-    return render_template('register.html',UserNameText=front_end_data['UserNameText'])
+            db.session.add(user)
+            db.session.commit()
+            print("恭喜註冊成功")
+            return redirect(url_for('login'))
+    
+    return render_template('register.html',line_uuid=line_uuid)
+
 
 @app.route('/line_notify',methods=['POST','GET'])
 def line_notify():
@@ -121,14 +145,19 @@ def line_notify_test():
         "Authorization": "Bearer "+user_token,
         "Content-Type": "application/x-www-form-urlencoded"
         }
+    # line端token綁api狀態
     msg = requests.get("https://notify-api.line.me/api/status", headers=headers)
     line_tokenState=str(msg.json()["message"])
     if line_tokenState=='ok':
+        # 解除line端token api
         msg=requests.post("https://notify-api.line.me/api/revoke", headers=headers)
         User.query.filter_by(username=session['user']).update({'NotifyToken':'None'})
         db.session.commit()
         print(msg.json()["message"])
-        print('1234')
+        return redirect(url_for('line_notify'))
+    else:
+        User.query.filter_by(username=session['user']).update({'NotifyToken':'None'})
+        db.session.commit()
         return redirect(url_for('line_notify'))
 
 @app.route('/testform',methods=['POST','GET'])

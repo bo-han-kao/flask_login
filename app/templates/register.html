@@ -4,19 +4,27 @@
 <div class="row">
 
     <div class="col-md-8">
-        <form action="/register" method="post">
+        {%if register_state%}
+        <div class="alert alert-danger" role="alert">
+            {{register_state}}
+        </div>
+        {%endif%}
+        <form action="" method="post">
+            <div class="form-group">
+                {%if line_uuid%}
+                <label for="disabledTextInput">Line_uuid</label>
+                <input readonly type="text" class="form-control" id="Line_uuid" name="Line_uuid" value="{{line_uuid}}" >
+                {%endif%}
+            </div>
+
             <div class="form-group">
                 <label for="disabledTextInput">Username</label>
-                {%if UserNameText%}
-                <input disabled type="text" class="form-control" id="user" name="user" value={{UserNameText}}>
-                {%else%}
-                <input type="text" class="form-control" id="user" name="user" >
-                {%endif%}
+                <input type="text" class="form-control" id="user" name="user" pattern="^(?=.*[A-Za-z0-9]).{4,}$" required="required" oninput="setCustomValidity('');" oninvalid="setCustomValidity('請輸入正確的名稱格式:含至少四個字元')">
             </div>
             
             <div class="form-group">
                 <label for="exampleInputPassword1">Password</label>
-                <input type="password" class="form-control" id="password" name="password">
+                <input type="password" class="form-control" id="password" name="password" pattern="^(?=.*[A-Za-z0-9]).{6,}$" required="required" oninput="setCustomValidity('');" oninvalid="setCustomValidity('請輸入正確的密碼格式:含至少六個字元')">
             </div>
             <button type="submit" class="btn btn-primary">Submit</button>
         </form>
