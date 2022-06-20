@@ -7,10 +7,10 @@ class User(db.Model):
     email = db.Column(db.String(120), nullable=True)
     NotifyToken = db.Column(db.String(120), nullable=True)
     Line_uuid = db.Column(db.String(120), nullable=True, primary_key=True)
-    ip = db.Column(db.String(120), nullable=True)
+    mqtt_dongle_id = db.Column(db.String(120), nullable=True)
     G1_mac = db.Column(db.String(120), nullable=True)
 
-    children = db.relationship('Notify_status',back_populates="parent")
+    children = db.relationship('Notify_status',back_populates="parent",cascade="all, delete-orphan")
     def __repr__(self):
         return '{username=%s,email=%s,NotifyToken=%s}' % (
             self.username,

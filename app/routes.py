@@ -1,14 +1,22 @@
-from pickle import FALSE
-from flask import Flask, flash,render_template,request,redirect,url_for,session
+from array import array
+from tkinter import N
+from flask import Flask, flash,render_template,request,redirect,url_for,session as flask_session
 from urllib.parse import parse_qs
 import urllib.parse as urlparse
 
-from sqlalchemy import true
+from sqlalchemy import join,text
+from sqlalchemy.sql import select
+
 from app import app,bcrypt,db
 import requests
 # from forms import RegisterForm
-from models import User
+from models import User,Notify_status
 import json
+
+
+
+
+
 
 @app.route('/')
 def index():
@@ -38,7 +46,7 @@ def login():
         # 判斷帳號密碼是否輸入正確
         if user and bcrypt.check_password_hash(user.password,password):
             print('登入成功',user.username)
-            session['user'] = user.username
+            flask_session['user'] = user.username
             return redirect(url_for('user'))
         else:
             print('登入失敗')
@@ -49,15 +57,15 @@ def login():
 
 @app.route('/user')
 def user():
-    if "user" in session:
-        user=session['user']
+    if "user" in flask_session:
+        user=flask_session['user']
         return render_template('user.html',user=user)
     else:
         return render_template('login.html')
 
 @app.route('/logout')
 def logout():
-    session.pop('user',None)
+    flask_session.pop('user',None)
     return redirect(url_for('login'))
 
 #待修改
@@ -100,7 +108,7 @@ def register():
 
 @app.route('/line_notify',methods=['POST','GET'])
 def line_notify():
-    tokenState=User.query.filter(User.username==session['user']).first().NotifyToken
+    tokenState=User.query.filter(User.username==flask_session['user']).first().NotifyToken
     print(tokenState)
    
     return render_template('line_notify.html',tokenState=str(tokenState))
@@ -122,7 +130,7 @@ def line_notify_bind():
     user_token = requests.post("https://notify-bot.line.me/oauth/token", data=body)
     user_token=str(user_token.json()["access_token"])
     print('使用者token:'+user_token)
-    User.query.filter_by(username=session['user']).update({'NotifyToken':user_token})
+    User.query.filter_by(username=flask_session['user']).update({'NotifyToken':user_token})
     db.session.commit()
     headers = {
     "Authorization": "Bearer "+user_token,
@@ -140,7 +148,7 @@ def line_notify_bind():
 
 @app.route('/line_notify_test',methods=['POST','GET'])
 def line_notify_test():
-    user_token=User.query.filter(User.username==session['user']).first().NotifyToken
+    user_token=User.query.filter(User.username==flask_session['user']).first().NotifyToken
     headers = {
         "Authorization": "Bearer "+user_token,
         "Content-Type": "application/x-www-form-urlencoded"
@@ -151,12 +159,12 @@ def line_notify_test():
     if line_tokenState=='ok':
         # 解除line端token api
         msg=requests.post("https://notify-api.line.me/api/revoke", headers=headers)
-        User.query.filter_by(username=session['user']).update({'NotifyToken':'None'})
+        User.query.filter_by(username=flask_session['user']).update({'NotifyToken':'None'})
         db.session.commit()
         print(msg.json()["message"])
         return redirect(url_for('line_notify'))
     else:
-        User.query.filter_by(username=session['user']).update({'NotifyToken':'None'})
+        User.query.filter_by(username=flask_session['user']).update({'NotifyToken':'None'})
         db.session.commit()
         return redirect(url_for('line_notify'))
 
@@ -165,7 +173,7 @@ def testform():
     if request.method == 'POST':
         G1_mac=request.form['mac']
         ip=request.form['ip']
-        User.query.filter_by(username=session['user']).update({'G1_mac':G1_mac,'ip':ip})
+        User.query.filter_by(username=flask_session['user']).update({'G1_mac':G1_mac,'ip':ip})
         db.session.commit()
     return render_template('testform.html')
 
@@ -173,3 +181,23 @@ def testform():
 @app.route('/html5_qrcode',methods=['GET'])
 def html5_qrcode():
     return render_template('html5_qrcode.html')
+
+
+@app.route('/Device_management',methods=['GET'])
+def Device_management():
+    array=[]
+    # j=User.query.join(Notify_status,User.Line_uuid==Notify_status.Line_uuid)
+    result =db.session.query(User.username,Notify_status.Device_Mac,Notify_status.Device_status).filter(User.username==flask_session['user']).filter(User.Line_uuid==Notify_status.Line_uuid).all()
+    # for row in db.session.execute(stmt):
+    #     print(f"{row.User.username} {row.Address.Device_Mac}")
+    print (result[0][1])
+    for i in range (len(result)):
+        Device_Mac=result[i][1]
+        Device_status=result[i][2]
+        data={'Device_Mac':Device_Mac,'Device_status':Device_status}
+        array.append(data)
+    print(type(json.dumps(array)))
+  
+
+
+    return render_template('Device_management.html')
