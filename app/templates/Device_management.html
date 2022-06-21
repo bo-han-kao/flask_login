@@ -1,8 +1,41 @@
-{% extends 'base.html' %}
+{% extends 'base1.html' %}
+
+{%block css_content%}
+<link href="{{url_for('static',filename='css/Device_management.css')}}" rel="stylesheet">
+{% endblock %}
+
 {%block app_content%}
-{{super()}}
-
-
+<div class="pt-3">
+    <table class="table table-bordered" id="tab"> 
+        <thead class="thead-dark d-flex">
+            <tr class="">
+                <th class="col-2"> 訂閱 <input type="checkbox" id="checkall" ></th>
+                <th class="col-5">裝置名稱</th>
+                <th class="col-4">裝置類型</th>
+                <!-- <th scope="col">Handle</th> -->
+            </tr>
+        </thead>
+        <tbody>
+            <!-- 樣式 -->
+            <tr>
+                <th class="col-2"><input type="checkbox" aria-label="Checkbox for following text input"></th>
+                <td class="col-5">Mark</td>
+                <td class="col-4">Otto</td>
+            </tr>
+            {%for data in tabledata%}
+            <tr id={{data['Device_Mac']}}>
+                <th class="col-2 "><input type="checkbox" name="Checkbox[]"  aria-label="Checkbox for following text input" {{ "checked" if data['Device_status'] == True}}></th>
+                <td class="col-5 " >{{data['Device_Mac']}}</td>
+                <td class="col-4">defal</td>
+            </tr>
+            {%endfor%}
+        </tbody>
+    </table>
+    <button id="send_data" type="button" class="btn btn-primary">Primary</button>
+</div>
 
 {%endblock%}
 
+{%block js_content%}
+<script src="{{url_for('static',filename='js/Device_management.js')}}"></script>
+{%endblock%}

@@ -4,7 +4,7 @@ from flask import Flask, flash,render_template,request,redirect,url_for,session 
 from urllib.parse import parse_qs
 import urllib.parse as urlparse
 
-from sqlalchemy import join,text
+from sqlalchemy import join, table,text
 from sqlalchemy.sql import select
 
 from app import app,bcrypt,db
@@ -12,10 +12,6 @@ import requests
 # from forms import RegisterForm
 from models import User,Notify_status
 import json
-
-
-
-
 
 
 @app.route('/')
@@ -190,14 +186,11 @@ def Device_management():
     result =db.session.query(User.username,Notify_status.Device_Mac,Notify_status.Device_status).filter(User.username==flask_session['user']).filter(User.Line_uuid==Notify_status.Line_uuid).all()
     # for row in db.session.execute(stmt):
     #     print(f"{row.User.username} {row.Address.Device_Mac}")
-    print (result[0][1])
     for i in range (len(result)):
         Device_Mac=result[i][1]
         Device_status=result[i][2]
         data={'Device_Mac':Device_Mac,'Device_status':Device_status}
         array.append(data)
-    print(type(json.dumps(array)))
-  
+    print(array)
 
-
-    return render_template('Device_management.html')
+    return render_template('Device_management.html',tabledata=array)
