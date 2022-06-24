@@ -1,5 +1,6 @@
 $(document).ready(function () {
-
+    var url_domain = window.location.href
+    console.log(url_domain)
     $("#checkall").click(function () {
         if ($("#checkall").prop("checked")) {
             $("input[name='Checkbox[]']").each(function () {
@@ -14,16 +15,32 @@ $(document).ready(function () {
 
 
     $("#send_data").click(function () {
-        let postdata={};
+        let postdata=[];
         console.log($("input[name='Checkbox[]']"))
         $("input[name='Checkbox[]']").each(function () {
+            let devicename=$(this).parent().parent().attr("id")
             if($(this).prop("checked")){
                 console.log("被選取")
-                console.log($(this).parent().parent().attr("id"))
+                postdata.push({"devicename":devicename,"status":true})
                
             }else{
                 console.log("沒選取")
-                console.log($(this).parent().parent().attr("id"))
+                postdata.push({"devicename":devicename,"status":false})
+            }
+        })
+        console.log(postdata)
+        $.ajax({
+            url:url_domain+"/edit",
+            type:"POST",
+            dataType:"json",
+            contentType: "application/json;charset=utf-8",
+            data:JSON.stringify(postdata),
+            success: function (returnData) {
+                console.log(returnData);
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                console.log(xhr.status);
+                console.log(thrownError);
             }
         })
     })

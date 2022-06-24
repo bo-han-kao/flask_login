@@ -1,10 +1,11 @@
 from array import array
+from genericpath import exists
 from tkinter import N
 from flask import Flask, flash,render_template,request,redirect,url_for,session as flask_session
 from urllib.parse import parse_qs
 import urllib.parse as urlparse
 
-from sqlalchemy import join, table,text
+from sqlalchemy import false, join, table,text, true, values,update,exists
 from sqlalchemy.sql import select
 
 from app import app,bcrypt,db
@@ -169,7 +170,7 @@ def testform():
     if request.method == 'POST':
         G1_mac=request.form['mac']
         ip=request.form['ip']
-        User.query.filter_by(username=flask_session['user']).update({'G1_mac':G1_mac,'ip':ip})
+        User.query.filter_by(username=flask_session['user']).update({'G1_mac':G1_mac,'mqtt_dongle_id':ip})
         db.session.commit()
     return render_template('testform.html')
 
@@ -183,14 +184,31 @@ def html5_qrcode():
 def Device_management():
     array=[]
     # j=User.query.join(Notify_status,User.Line_uuid==Notify_status.Line_uuid)
-    result =db.session.query(User.username,Notify_status.Device_Mac,Notify_status.Device_status).filter(User.username==flask_session['user']).filter(User.Line_uuid==Notify_status.Line_uuid).all()
+    result =db.session.query(User.username,Notify_status.Device_Mac,Notify_status.Device_status,Notify_status.Device_type).filter(User.username==flask_session['user']).filter(User.Line_uuid==Notify_status.Line_uuid).all()
     # for row in db.session.execute(stmt):
     #     print(f"{row.User.username} {row.Address.Device_Mac}")
     for i in range (len(result)):
         Device_Mac=result[i][1]
         Device_status=result[i][2]
-        data={'Device_Mac':Device_Mac,'Device_status':Device_status}
+        Device_type=result[i][3]
+        data={'Device_Mac':Device_Mac,'Device_status':Device_status,'Device_type':Device_type}
         array.append(data)
     print(array)
+   
 
     return render_template('Device_management.html',tabledata=array)
+
+
+@app.route('/Device_management/edit',methods=['POST'])
+def Device_management_edit():
+   if request.method == 'POST':
+        # p=db.session.query(Notify_status).filter(User.username==flask_session['user'], User.Line_uuid==Notify_status.Line_uuid, Notify_status.Device_Mac=='EA083F58FDC4').update({Notify_status.Device_status: False}, synchronize_session='fetch')
+        # p=db.session.query(Notify_status).filter_by( User.username=flask_session['user'] and User.Line_uuid=Notify_status.Line_uuid and  Notify_status.Device_Mac='EA083F58FDC4').update({Notify_status.Device_status: False}, synchronize_session='fetch')
+        # stmt=(update(Notify_status).values(Device_status=0).where(Notify_status.Device_Mac=='EA083F58FDC4'))
+        # p=update(Notify_status).values(Device_status=0).filter(exists().where(User.Line_uuid==Notify_status.Line_uuid , User.username=='jack' ,Notify_status.Device_Mac=='EA083F58FDC4'))
+        user_lineuuid=User.query.filter_by(username=flask_session['user']).first().Line_uuid
+        font_end_data=request.json
+        for i in font_end_data:
+            Notify_status.query.filter(Notify_status.Line_uuid==user_lineuuid , Notify_status.Device_Mac==i['devicename']).update({'Device_status':i['status']})
+            db.session.commit()
+        return {'state':'200'}

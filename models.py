@@ -19,7 +19,7 @@ class User(db.Model):
             )
 
 class Notify_status(db.Model):
-    Line_uuid = db.Column(db.String(100), db.ForeignKey('user.Line_uuid'), nullable=True)
+    Line_uuid = db.Column(db.String(100), db.ForeignKey('user.Line_uuid'), nullable=True, primary_key=True)
     Device_Mac= db.Column(db.String(100), primary_key=True)
     Device_status=db.Column(db.Boolean(), nullable=True)
     Device_type= db.Column(db.String(100),nullable=True)

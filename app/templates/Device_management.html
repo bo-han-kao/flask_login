@@ -17,16 +17,16 @@
         </thead>
         <tbody>
             <!-- 樣式 -->
-            <tr>
+            <!-- <tr>
                 <th class="col-2"><input type="checkbox" aria-label="Checkbox for following text input"></th>
                 <td class="col-5">Mark</td>
                 <td class="col-4">Otto</td>
-            </tr>
+            </tr> -->
             {%for data in tabledata%}
             <tr id={{data['Device_Mac']}}>
                 <th class="col-2 "><input type="checkbox" name="Checkbox[]"  aria-label="Checkbox for following text input" {{ "checked" if data['Device_status'] == True}}></th>
                 <td class="col-5 " >{{data['Device_Mac']}}</td>
-                <td class="col-4">defal</td>
+                <td class="col-4">{{data['Device_type']}}</td>
             </tr>
             {%endfor%}
         </tbody>
