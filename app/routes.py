@@ -13,7 +13,42 @@ import requests
 # from forms import RegisterForm
 from models import User,Notify_status
 import json
+# -------------------------------mqtt use-------------------------
+import configparser
+import json
+import traceback
+from collections import defaultdict
+from package import mqtt_config
 
+# Read configuration file.
+config = configparser.ConfigParser()
+config.read('config.ini')
+MQTT_BROKER_HOST = config.get('DEFAULT', 'MQTT_BROKER_HOST')
+MQTT_BROKER_PORT = config.getint('DEFAULT', 'MQTT_BROKER_PORT')
+
+DEVICE_TYPE = {
+    0: 'power_meter',
+    1: 'smart_watch',
+    2: 'sensor',
+    3: 'switch'
+}
+
+power_meter_data = defaultdict(lambda: defaultdict(dict))
+# -------------------------------mqtt use-------------------------
+
+
+
+
+@app.before_request
+def login_require():
+    if request.path in ['','/','/login','/register','/powermeter_list_device'] or '/static/' in request.path:
+        return None
+    flask_session.permanent = True
+    user=flask_session.get('user') 
+    print(user)
+    if user==None:
+        print(user)
+        return redirect('/login')
 
 @app.route('/')
 def index():
@@ -169,8 +204,7 @@ def line_notify_test():
 def testform():
     if request.method == 'POST':
         G1_mac=request.form['mac']
-        ip=request.form['ip']
-        User.query.filter_by(username=flask_session['user']).update({'G1_mac':G1_mac,'mqtt_dongle_id':ip})
+        User.query.filter_by(username=flask_session['user']).update({'G1_mac':G1_mac})
         db.session.commit()
     return render_template('testform.html')
 
@@ -194,7 +228,6 @@ def Device_management():
         data={'Device_Mac':Device_Mac,'Device_status':Device_status,'Device_type':Device_type}
         array.append(data)
     print(array)
-   
 
     return render_template('Device_management.html',tabledata=array)
 
@@ -212,3 +245,76 @@ def Device_management_edit():
             Notify_status.query.filter(Notify_status.Line_uuid==user_lineuuid , Notify_status.Device_Mac==i['devicename']).update({'Device_status':i['status']})
             db.session.commit()
         return {'state':'200'}
+
+@app.route('/html5_qrcode/edit',methods=['POST'])
+def html5_qrcode_edit():
+   if request.method == 'POST':
+        font_end_data=request.json
+        User.query.filter(User.username==flask_session['user']).update({'mqtt_dongle_id':font_end_data['mqtt_id']})
+        db.session.commit()
+        return {'state':'200'}
+
+
+@app.route('/powermeter',methods=['GET'])
+def powermeter():
+    return render_template('powermeter.html')
+
+@app.route('/powermeter_list_device',methods=['POST'])
+def powermeter_list_device():
+    powermeter_device=[]
+    print(power_meter_data['F08E4B12E4CE'])
+    for key in power_meter_data['F08E4B12E4CE'].keys():
+        if key:
+            powermeter_device.append(key)
+    print(powermeter_device)
+    return{'status':200}
+
+
+# -------------------------------mqtt code-------------------------
+def on_connect(client, userdata, flags, rc):
+    # print(f'Connected with result code {rc}')
+    client.subscribe('mqtt_dongle/read/+')
+
+
+def on_message(client, userdata, msg):
+    try:
+        topic = msg.topic
+        try:
+            payload = json.loads(msg.payload)
+        except Exception:
+            payload = json.loads('{' + msg.payload.decode() + '}')
+        # print(f'Topic: {topic}')
+        # print(f'Payload: {payload}')
+        get_device_data(topic, payload)
+    except Exception:
+        traceback.print_exc()
+
+
+def get_device_data(topic, payload):
+    mqtt_dongle_id = topic.split('/')[-1]
+    data = payload['device']['data']
+    device_type = DEVICE_TYPE[data[-1]]
+    device_id = data[0]
+    if device_type == 'power_meter':
+        
+        power_meter_data[mqtt_dongle_id][device_id] = data
+        # print(power_meter_data)
+
+def subscribe():
+    client = mqtt_config.MQTTConfig()
+    client.on_connect = on_connect
+    client.on_message = on_message
+    while True:
+        try:
+            client.connect(MQTT_BROKER_HOST, MQTT_BROKER_PORT)
+        except Exception:
+            traceback.print_exc()
+        else:
+            break
+    print('Start subscribing...')
+    client.loop_start()
+    return client
+
+
+client = subscribe()
+# -------------------------------mqtt code-------------------------

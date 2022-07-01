@@ -5,11 +5,11 @@
 
 <a id="line_bind1"
     href="https://notify-bot.line.me/oauth/authorize?response_type=code&client_id=damgGNEOW7TW6vBtxoCWtt&redirect_uri=http://10.10.10.126:5000/line_notify_bind&scope=notify&state=NO_STATE">
-    <button type="submit" class="btn btn-primary" id="line_bind">綁定line</button>
+    <button type="submit" class="btn btn-primary" id="line_bind">bind_line</button>
 </a>
 {%else%}
 <a href="{{url_for('line_notify_test')}}">
-    <button class="btn btn-danger">解除綁定</button>
+    <button class="btn btn-danger">unbind</button>
 </a>
 
 {%endif%}

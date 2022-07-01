@@ -1,0 +1,15 @@
+.scan-box{
+    height: 300px;
+    background-color: antiquewhite;
+}
+
+.data-box{
+    height:300px;
+    background-color: aquamarine;
+}
+
+#reader{
+    width:300px;
+ 
+    background-color: gray;
+}

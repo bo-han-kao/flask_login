@@ -1,12 +1,25 @@
 {% extends 'base1.html' %}
+
+{%block css_content%}
+<link href="{{url_for('static',filename='css/html5_qrcode.css')}}" rel="stylesheet">
+
+{%endblock%}
+
+
 {%block app_content%}
 
-
-
-<div class="row">
-    <div id="reader" style="width: 400px;height: 400px;background-color: aqua;" > </div>
+<div class="row pt-3">
+    <div class="scan-box col-6">
+        <div id="reader"> </div>
+    </div>
+    <div class="data-box col-6">
+        <label >mqtt_dongle_id</label>
+        <input  class="form-control" id="QR_codedata" >
+        <button class="btn btn-primary" id="bind">bind</button>
+    </div>
 </div>
-
+ <button type="button" class="btn btn-primary" id="start-scan">開始掃描</button>
+ <button type="button" class="btn btn-primary" id="end-scan">關閉</button>
 
 {%endblock%}
 {%block js_content%}

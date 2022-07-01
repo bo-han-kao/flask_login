@@ -2,6 +2,8 @@
     display: none;
   }
 
+.row:before, .row:after {display: none !important;}
+
 table {
     display: flex;
     flex-flow: column;
@@ -21,6 +23,7 @@ tbody {
     overflow-x: hidden;
     height: 700px;
     /* padding-left: 7px; */
+    font-size: 3vmin;
 }
 
 tr {
@@ -31,3 +34,4 @@ tr {
 th{
     text-align: center;
 }
+

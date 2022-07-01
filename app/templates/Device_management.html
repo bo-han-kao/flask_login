@@ -9,9 +9,9 @@
     <table class="table table-bordered" id="tab"> 
         <thead class="thead-dark d-flex">
             <tr class="">
-                <th class="col-2"> 訂閱 <input type="checkbox" id="checkall" ></th>
-                <th class="col-5">裝置名稱</th>
-                <th class="col-4">裝置類型</th>
+                <th class="col-2"> subscrip <input type="checkbox" id="checkall" ></th>
+                <th class="col-6">Device_Name</th>
+                <th class="col-4">Device_Type</th>
                 <!-- <th scope="col">Handle</th> -->
             </tr>
         </thead>
@@ -24,14 +24,14 @@
             </tr> -->
             {%for data in tabledata%}
             <tr id={{data['Device_Mac']}}>
-                <th class="col-2 "><input type="checkbox" name="Checkbox[]"  aria-label="Checkbox for following text input" {{ "checked" if data['Device_status'] == True}}></th>
-                <td class="col-5 " >{{data['Device_Mac']}}</td>
+                <th class="col-2"><input type="checkbox" name="Checkbox[]"  aria-label="Checkbox for following text input" {{ "checked" if data['Device_status'] == True}}></th>
+                <td class="col-6" >{{data['Device_Mac']}}</td>
                 <td class="col-4">{{data['Device_type']}}</td>
             </tr>
             {%endfor%}
         </tbody>
     </table>
-    <button id="send_data" type="button" class="btn btn-primary">Primary</button>
+    <button id="send_data" type="button" class="btn btn-primary">Save</button>
 </div>
 
 {%endblock%}

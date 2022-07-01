@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0" /> -->
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="{{url_for('static',filename='css/powermeter.css')}}">
+    <script src="./plugins/jquery/jquery-3.6.0.js"></script>
+</head>
+
+<body>
+    <section>
+        <div id="iphone-6"><span class="power"></span><span class="volume-switch"></span><span
+                class="volume-plus"></span><span class="volume-minus"></span><span class="line-top"></span><span
+                class="line-bottom"></span><span class="camera"></span><span class="speaker"></span><span
+                class="home"><a href="#"></a></span>
+        </div>
+        <div class="screen">
+
+            <div class="iphone-list ">
+                <header class="list-header">
+                    <div class="header-box">
+                        <span>下午1:11</span>
+                    </div>
+                    <div class="header-icon ">
+                        <span>0.3KB/s</span>
+                        <img src="{{url_for('static',filename='img/powermeter/bluetooth.svg')}}" alt="">
+                        <img src="{{url_for('static',filename='img/powermeter/single.svg')}}" alt="">
+                        <img src="{{url_for('static',filename='img/powermeter/wifi.svg')}}" alt="">
+                        <img src="{{url_for('static',filename='img/powermeter/battery.svg')}}" alt="">
+                    </div>
+
+                </header>
+
+                <nav class="list-nav">
+                    <div class="nav-span">
+                        <span>Power Meter</span>
+                    </div>
+                    <div class="nav-image">
+                        <img class="image_serch" src="{{url_for('static',filename='img/powermeter/serch.svg')}}" alt="">
+                        <select name="" id="select_ip">
+                            <option value="none" selected disabled hidden>ip</option>
+                        </select>
+                        <select name="" id="select_device">
+                            <option value="none" selected disabled hidden>UUID</option>
+                            <!-- <option value="">FDC4</option> -->
+                        </select>
+                        <!-- <embed src="./image/dfu-1.svg" alt=""> -->
+                    </div>
+                </nav>
+                <div class="list-ver"><p>BTver:--.--</p></div>
+                <article class="list-section">
+                    <div id="page1_content">
+                        <div class="value_box box1 ">
+                            <span class="box_value watt_hour_val">0</span>
+                            <span class="value_name">Watt/Hour</span>
+                        </div>
+                        <div class="value_box box1 ">
+                            <span class="box_value watt_val">0</span>
+                            <span class="value_name">Watt</span>
+                        </div>
+                        <div class="value_box box1 ">
+                            <span class="box_value amp_val">0</span>
+                            <span class="value_name">Amp</span>
+                        </div>
+                        <div class="value_box box1 ">
+                            <span class="box_value volt_val">0</span>
+                            <span class="value_name">volt</span>
+                        </div>
+                        <div class="value_box box1 ">
+                            <span class="box_value hz_val">0</span>
+                            <span class="value_name">HZ</span>
+                        </div>
+                        <div class="value_box box1 ">
+                            <span class="box_value1">Relay_switch</span>
+                            <div class="toggle_box">
+                                <div class="toggle-btn page1-btn">
+                                    <input type="checkbox" class="cb-value page1_toggle" />
+                                    <span class="round-btn"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="page2_content" style="display: none;">
+                        <div class="page2_top">
+                            <div class="relay_css">Relay</div>
+                            <div class="toggle_box">
+                                <div class="toggle-btn">
+                                    <input type="checkbox" class="cb-value page2_toggle" />
+                                    <span class="round-btn"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="page2_bottom">
+                            <div class="rtc_css">RTC</div>
+                            <div class="time_css"></div>
+                            <div class="setting_time">
+                                <button id="set_time">時間校正</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="page3_content" style="display: none;">
+
+                    </div>
+                </article>
+
+                <aside class="list-aside">
+                    <div class="page1 page-css page-active">
+                        <img src="{{url_for('static',filename='img/powermeter/finder.svg')}}" alt="">
+                    </div>
+                    <!-- <div class="page2 page-css">
+                        <img src="./image/setting.svg" alt="">
+                    </div>
+                    <div class="page3 page-css">
+                        <img src="./image/timer_icon.svg" alt="">
+                    </div> -->
+                </aside>
+
+                <footer class="list-footer">
+                    <div class="iconbox">
+                        <div class="footer-icon">
+                            <img src="{{url_for('static',filename='img/powermeter/square.svg')}}" alt="">
+                        </div>
+                        <div class="footer-icon">
+                            <img src="{{url_for('static',filename='img/powermeter/circle.svg')}}" alt="">
+                        </div>
+                        <div class="footer-icon">
+                            <img src="{{url_for('static',filename='img/powermeter/triangle.svg')}}" alt="">
+                        </div>
+                    </div>
+                </footer>
+            </div>
+        </div>
+    </section>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="{{url_for('static',filename='js/powermeter.js')}}"></script>
+</body>
+
+</html>
