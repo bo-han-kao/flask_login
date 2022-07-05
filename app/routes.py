@@ -5,7 +5,7 @@ from flask import Flask, flash,render_template,request,redirect,url_for,session 
 from urllib.parse import parse_qs
 import urllib.parse as urlparse
 
-from sqlalchemy import false, join, table,text, true, values,update,exists
+from sqlalchemy import false, join, null, table,text, true, values,update,exists
 from sqlalchemy.sql import select
 
 from app import app,bcrypt,db
@@ -35,9 +35,6 @@ DEVICE_TYPE = {
 
 power_meter_data = defaultdict(lambda: defaultdict(dict))
 # -------------------------------mqtt use-------------------------
-
-
-
 
 @app.before_request
 def login_require():
@@ -213,6 +210,13 @@ def testform():
 def html5_qrcode():
     return render_template('html5_qrcode.html')
 
+@app.route('/html5_qrcode/edit',methods=['POST'])
+def html5_qrcode_edit():
+   if request.method == 'POST':
+        font_end_data=request.json
+        User.query.filter(User.username==flask_session['user']).update({'mqtt_dongle_id':font_end_data['mqtt_id']})
+        db.session.commit()
+        return {'state':'200'}
 
 @app.route('/Device_management',methods=['GET'])
 def Device_management():
@@ -246,28 +250,47 @@ def Device_management_edit():
             db.session.commit()
         return {'state':'200'}
 
-@app.route('/html5_qrcode/edit',methods=['POST'])
-def html5_qrcode_edit():
-   if request.method == 'POST':
-        font_end_data=request.json
-        User.query.filter(User.username==flask_session['user']).update({'mqtt_dongle_id':font_end_data['mqtt_id']})
-        db.session.commit()
-        return {'state':'200'}
+@app.route('/powermeter_list_device',methods=['GET'])
+def powermeter_list_device():
+    mqtt_dongle_id=User.query.filter(User.username==flask_session['user']).first().mqtt_dongle_id
+    if mqtt_dongle_id=='' or mqtt_dongle_id=='None' or mqtt_dongle_id==null:
+        print('沒有mqtt+id')
+        return {'code':'200','msg':'no found dongle_id'}
+    else:
+        powermeter_device=[]
+        for key in power_meter_data[mqtt_dongle_id].keys():
+            if key:
+                powermeter_device.append({'device':key,'deviceType':'PowerMeter'})
+        print(powermeter_device)
+        return json.dumps(powermeter_device)
 
 
-@app.route('/powermeter',methods=['GET'])
+
+
+@app.route('/powermeter',methods=['GET','POST'])
 def powermeter():
+    if request.method == 'POST':
+        to_fondend_data={
+        'watt_hour':'',
+        'watt':'',
+        'volt':'',
+        'current':'',
+        'frequency':'',
+        'rssi':'',
+        'data_type':''
+        }
+        mqtt_dongle_id=User.query.filter(User.username==flask_session['user']).first().mqtt_dongle_id
+        parsed = urlparse.urlparse(request.url)
+        meter_devicName=parsed.query.split('=')[1]
+        print(power_meter_data[mqtt_dongle_id][meter_devicName])
+        pmd = power_meter_data[mqtt_dongle_id][meter_devicName][1:]
+        for key, val in zip(to_fondend_data, pmd):
+            to_fondend_data[key] = val
+        print(to_fondend_data)
+        return(json.dumps(to_fondend_data))
     return render_template('powermeter.html')
 
-@app.route('/powermeter_list_device',methods=['POST'])
-def powermeter_list_device():
-    powermeter_device=[]
-    print(power_meter_data['F08E4B12E4CE'])
-    for key in power_meter_data['F08E4B12E4CE'].keys():
-        if key:
-            powermeter_device.append(key)
-    print(powermeter_device)
-    return{'status':200}
+
 
 
 # -------------------------------mqtt code-------------------------

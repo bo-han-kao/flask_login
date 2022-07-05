@@ -8,7 +8,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <link rel="stylesheet" href="{{url_for('static',filename='css/powermeter.css')}}">
-    <script src="./plugins/jquery/jquery-3.6.0.js"></script>
 </head>
 
 <body>
@@ -39,17 +38,17 @@
                     <div class="nav-span">
                         <span>Power Meter</span>
                     </div>
-                    <div class="nav-image">
+                    <!-- <div class="nav-image">
                         <img class="image_serch" src="{{url_for('static',filename='img/powermeter/serch.svg')}}" alt="">
                         <select name="" id="select_ip">
                             <option value="none" selected disabled hidden>ip</option>
                         </select>
                         <select name="" id="select_device">
                             <option value="none" selected disabled hidden>UUID</option>
-                            <!-- <option value="">FDC4</option> -->
+                          
                         </select>
-                        <!-- <embed src="./image/dfu-1.svg" alt=""> -->
-                    </div>
+                  
+                    </div> -->
                 </nav>
                 <div class="list-ver"><p>BTver:--.--</p></div>
                 <article class="list-section">
@@ -111,7 +110,7 @@
 
                 <aside class="list-aside">
                     <div class="page1 page-css page-active">
-                        <img src="{{url_for('static',filename='img/powermeter/finder.svg')}}" alt="">
+                        <a href="{{url_for('Device_management')}}"> <img src="{{url_for('static',filename='img/powermeter/finder.svg')}}" alt=""></a>
                     </div>
                     <!-- <div class="page2 page-css">
                         <img src="./image/setting.svg" alt="">

@@ -522,7 +522,7 @@
     display: flex;
   }
   
-  .list-aside img {
+  .list-aside a {
     width: 10%;
     cursor: pointer;
   }
