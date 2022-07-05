@@ -67,7 +67,7 @@ $(document).ready(function () {
     let mqtt_id = $('#QR_codedata').val()
     let postdata = { "mqtt_id": mqtt_id }
     $('#QR_codedata').val("")
-    console.log(mqtt_id)
+    // console.log(mqtt_id)
     $.ajax({
       url: url_domain + "/edit",
       type: "POST",

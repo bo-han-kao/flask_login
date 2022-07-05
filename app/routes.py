@@ -42,9 +42,8 @@ def login_require():
         return None
     flask_session.permanent = True
     user=flask_session.get('user') 
-    print(user)
+    # print(user)
     if user==None:
-        print(user)
         return redirect('/login')
 
 @app.route('/')
@@ -57,14 +56,12 @@ def login():
     parsed = urlparse.urlparse(request.url)
     # 看網址是否含LINE_UUID參數
     groupQuery = 'LINE_UUID' in parse_qs(parsed.query)
-    print(groupQuery)
+    # print(groupQuery)
     if groupQuery == True:
         # 取得line_uuid
         line_uuid=parsed.query.split('=')[1]
         db_line_uuid=User.query.filter_by(Line_uuid=line_uuid).first()
-        print(db_line_uuid)
         if str(db_line_uuid)=='None':
-            print('沒有line id')
             return redirect(url_for('register',LINE_UUID=line_uuid))
 
     if request.method == 'POST':
@@ -74,11 +71,9 @@ def login():
         user=User.query.filter_by(username=user).first()
         # 判斷帳號密碼是否輸入正確
         if user and bcrypt.check_password_hash(user.password,password):
-            print('登入成功',user.username)
             flask_session['user'] = user.username
             return redirect(url_for('user'))
         else:
-            print('登入失敗')
             return render_template('login.html',login_state='登入失敗')
     
     return render_template('login.html')
@@ -104,18 +99,15 @@ def register():
     parsed = urlparse.urlparse(request.url)
     groupQuery = 'LINE_UUID' in parse_qs(parsed.query)
     line_uuid = False
-    print(groupQuery)
     if groupQuery==True:
         line_uuid=parsed.query.split('=')[1]
     
     if request.method == 'POST':
-        
         user=request.form['user']
         password=request.form['password']
-        print(user,password,groupQuery)
+    
         # 有重複user處理
         if User.query.filter_by(username=user).first():
-            print(parsed)
             if line_uuid:
                 return render_template('register.html',register_state='名稱已被註冊',line_uuid=line_uuid)
 
@@ -129,7 +121,6 @@ def register():
                 user=User(username=user,password=password)
             db.session.add(user)
             db.session.commit()
-            print("恭喜註冊成功")
             return redirect(url_for('login'))
     
     return render_template('register.html',line_uuid=line_uuid)
@@ -138,7 +129,7 @@ def register():
 @app.route('/line_notify',methods=['POST','GET'])
 def line_notify():
     tokenState=User.query.filter(User.username==flask_session['user']).first().NotifyToken
-    print(tokenState)
+    # print(tokenState)
    
     return render_template('line_notify.html',tokenState=str(tokenState))
 
@@ -146,7 +137,7 @@ def line_notify():
 @app.route('/line_notify_bind',methods=['POST','GET'])
 def line_notify_bind():
     notify_code=request.args.get('code')
-    print(notify_code)
+    # print(notify_code)
     # step1:https://notify-bot.line.me/zh_TW/
     # step2:到管理登入服務更改下面client_id,client_secret
     body = {
@@ -158,7 +149,7 @@ def line_notify_bind():
     }
     user_token = requests.post("https://notify-bot.line.me/oauth/token", data=body)
     user_token=str(user_token.json()["access_token"])
-    print('使用者token:'+user_token)
+    # print('使用者token:'+user_token)
     User.query.filter_by(username=flask_session['user']).update({'NotifyToken':user_token})
     db.session.commit()
     headers = {
@@ -171,7 +162,6 @@ def line_notify_bind():
                 'stickerId':'1993',
                 'stickerPackageId':'446'}
     msg = requests.post("https://notify-api.line.me/api/notify", headers=headers, data=payload)
-    print(msg) 
     return redirect(url_for('line_notify'))
    
 
@@ -190,7 +180,6 @@ def line_notify_test():
         msg=requests.post("https://notify-api.line.me/api/revoke", headers=headers)
         User.query.filter_by(username=flask_session['user']).update({'NotifyToken':'None'})
         db.session.commit()
-        print(msg.json()["message"])
         return redirect(url_for('line_notify'))
     else:
         User.query.filter_by(username=flask_session['user']).update({'NotifyToken':'None'})
@@ -231,7 +220,7 @@ def Device_management():
         Device_type=result[i][3]
         data={'Device_Mac':Device_Mac,'Device_status':Device_status,'Device_type':Device_type}
         array.append(data)
-    print(array)
+   
 
     return render_template('Device_management.html',tabledata=array)
 
@@ -254,14 +243,14 @@ def Device_management_edit():
 def powermeter_list_device():
     mqtt_dongle_id=User.query.filter(User.username==flask_session['user']).first().mqtt_dongle_id
     if mqtt_dongle_id=='' or mqtt_dongle_id=='None' or mqtt_dongle_id==null:
-        print('沒有mqtt+id')
+       
         return {'code':'200','msg':'no found dongle_id'}
     else:
         powermeter_device=[]
         for key in power_meter_data[mqtt_dongle_id].keys():
             if key:
                 powermeter_device.append({'device':key,'deviceType':'PowerMeter'})
-        print(powermeter_device)
+       
         return json.dumps(powermeter_device)
 
 
@@ -282,11 +271,11 @@ def powermeter():
         mqtt_dongle_id=User.query.filter(User.username==flask_session['user']).first().mqtt_dongle_id
         parsed = urlparse.urlparse(request.url)
         meter_devicName=parsed.query.split('=')[1]
-        print(power_meter_data[mqtt_dongle_id][meter_devicName])
+        # print(power_meter_data[mqtt_dongle_id][meter_devicName])
         pmd = power_meter_data[mqtt_dongle_id][meter_devicName][1:]
         for key, val in zip(to_fondend_data, pmd):
             to_fondend_data[key] = val
-        print(to_fondend_data)
+        # print(to_fondend_data)
         return(json.dumps(to_fondend_data))
     return render_template('powermeter.html')
 

@@ -15,7 +15,7 @@ $(document).ready(function () {
 
     $("#send_data").click(function () {
         let postdata = [];
-        console.log($("input[name='Checkbox[]']"))
+        // console.log($("input[name='Checkbox[]']"))
         $("input[name='Checkbox[]']").each(function () {
             let devicename = $(this).parent().parent().attr("id")
             if ($(this).prop("checked")) {
@@ -55,7 +55,7 @@ $(document).ready(function () {
                     }
                     let str = "";
                     for (let i = 0; i < returnData.length; i++) {
-                        console.log(returnData[i].device)
+                        // console.log(returnData[i].device)
                         str += '<tr id=' + returnData[i].device + ' name=' + returnData[i].deviceType + '>'
                         str += ' <th class="col-2"><input type="checkbox"   aria-label="Checkbox for following text input" disabled></th>'
                         str += ' <td class="col-6" ><a href="/powermeter?devicename=' + returnData[i].device + '">' + returnData[i].device + '</a></td>'
