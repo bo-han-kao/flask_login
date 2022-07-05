@@ -8,18 +8,30 @@
 
 {%block app_content%}
 
-<div class="row pt-3">
-    <div class="scan-box col-6">
+<div class="d-flex align-items-center justify-content-center pt-5" id="camera">
+
+    <div class="scan-box">
         <div id="reader"> </div>
+        <label>dongle_id</label>
+        <div class="d-flex">
+            <input class="form-control" id="QR_codedata">
+            <button class="btn btn-primary" id="bind">bind</button>
+        </div>
+
     </div>
-    <div class="data-box col-6">
-        <label >mqtt_dongle_id</label>
-        <input  class="form-control" id="QR_codedata" >
-        <button class="btn btn-primary" id="bind">bind</button>
-    </div>
+
 </div>
- <button type="button" class="btn btn-primary" id="start-scan">開始掃描</button>
- <button type="button" class="btn btn-primary" id="end-scan">關閉</button>
+<div class="d-flex justify-content-center">
+    <button type="button" class="btn btn-primary" id="start-scan">start_scan</button>
+    <button type="button" class="btn btn-danger d-none" id="end-scan">stop_scan</button>
+</div>
+
+
+
+
+
+
+
 
 {%endblock%}
 {%block js_content%}
