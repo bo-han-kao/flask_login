@@ -19,10 +19,23 @@ $(document).ready(function () {
         console.log(qrCodeMessage)
         data_obj = JSON.parse(qrCodeMessage)
         if (!data_obj["mqtt_dongle_id"]) {
-          alert('格式不符')
+          let  str='';
+          str+=' <div class="alert alert-danger" id="msg" role="alert">'
+          str+=' paload error'
+          str+='</div>'
+          $('#alertbox').html(str)
+          $('#msg').fadeOut(3000);
         } else {
           $('#QR_codedata').val(data_obj["mqtt_dongle_id"])
+          let  str='';
+          str+=' <div class="alert alert-success" id="msg" role="alert">'
+          str+='sucess to scan'
+          str+='</div>'
+          $('#alertbox').html(str)
+          $('#msg').fadeOut(5000);
           html5QrCode.stop();
+          $('#end-scan').addClass("d-none")
+          $('#start-scan').removeClass("d-none")
         }
 
       },
@@ -38,19 +51,22 @@ $(document).ready(function () {
   // If you want to prefer back camera
   // html5QrCode.start({ facingMode: "environment" }, config, qrCodeSuccessCallback);
   $('#start-scan').click(function () {
-    startQRcode()
+    startQRcode();
+    $(this).addClass("d-none")
+    $('#QR_codedata').val("")
+    $('#end-scan').removeClass("d-none")
   })
 
   $('#end-scan').click(function () {
     html5QrCode.stop();
+    $(this).addClass("d-none")
+    $('#start-scan').removeClass("d-none")
   })
-
-  
-
 
   $('#bind').click(function () {
     let mqtt_id = $('#QR_codedata').val()
     let postdata = { "mqtt_id": mqtt_id }
+    $('#QR_codedata').val("")
     console.log(mqtt_id)
     $.ajax({
       url: url_domain + "/edit",
@@ -60,6 +76,12 @@ $(document).ready(function () {
       data: JSON.stringify(postdata),
       success: function (returnData) {
         console.log(returnData);
+        let  str='';
+        str+=' <div class="alert alert-success" id="msg" role="alert">'
+        str+=' success to bind dongle'
+        str+='</div>'
+        $('#alertbox').html(str)
+        $('#msg').fadeOut(5000);
       },
       error: function (xhr, ajaxOptions, thrownError) {
         console.log(xhr.status);
