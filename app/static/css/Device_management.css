@@ -1,8 +1,11 @@
 ::-webkit-scrollbar {
     display: none;
-  }
+}
 
-.row:before, .row:after {display: none !important;}
+.row:before,
+.row:after {
+    display: none !important;
+}
 
 table {
     display: flex;
@@ -21,7 +24,7 @@ tbody {
     display: block;
     overflow-y: scroll;
     overflow-x: hidden;
-    height: 700px;
+    height: 650px;
     /* padding-left: 7px; */
     font-size: 3vmin;
 }
@@ -31,7 +34,40 @@ tr {
     display: table;
     table-layout: fixed;
 }
-th{
+
+
+tr img {
+    width: 25%;
+    cursor: pointer;
+}
+
+th {
     text-align: center;
 }
 
+[name="PowerMeter"] a {
+    text-decoration: underline;
+}
+
+@media screen and (max-height:850px) {
+    tbody {
+        height: 600px;
+    }
+
+    /* tr img{
+        width: 50%;
+    } */
+}
+
+@media screen and (max-height:680px) {
+    tbody {
+        height: 400px;
+    }
+}
+
+@media screen and (max-width:990px) {
+    tr img {
+        width: 50%;
+    }
+
+}

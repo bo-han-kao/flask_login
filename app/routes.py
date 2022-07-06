@@ -38,7 +38,7 @@ power_meter_data = defaultdict(lambda: defaultdict(dict))
 
 @app.before_request
 def login_require():
-    if request.path in ['','/','/login','/register','/powermeter_list_device'] or '/static/' in request.path:
+    if request.path in ['','/login','/register','/powermeter_list_device'] or '/static/' in request.path:
         return None
     flask_session.permanent = True
     user=flask_session.get('user') 
@@ -239,6 +239,26 @@ def Device_management_edit():
             db.session.commit()
         return {'state':'200'}
 
+
+@app.route('/Device_management/delete',methods=['POST'])
+def Device_management_delete():
+   if request.method == 'POST':
+        font_end_data=request.json
+        user_lineuuid=User.query.filter_by(username=flask_session['user']).first().Line_uuid
+        Notify_status.query.filter_by(Line_uuid=user_lineuuid,Device_Mac=font_end_data['delete_mac']).delete()
+        db.session.commit()
+        print(font_end_data['delete_mac'])
+        return {'state':'200','msg':'delete ok'}
+
+@app.route('/Device_management/deleteall',methods=['POST'])
+def Device_management_deleteall():
+   if request.method == 'POST':
+        user_lineuuid=User.query.filter_by(username=flask_session['user']).first().Line_uuid
+        Notify_status.query.filter_by(Line_uuid=user_lineuuid).delete()
+        db.session.commit()
+        return {'state':'200','msg':'delete_all ok'}
+
+
 @app.route('/powermeter_list_device',methods=['GET'])
 def powermeter_list_device():
     mqtt_dongle_id=User.query.filter(User.username==flask_session['user']).first().mqtt_dongle_id
@@ -278,8 +298,6 @@ def powermeter():
         # print(to_fondend_data)
         return(json.dumps(to_fondend_data))
     return render_template('powermeter.html')
-
-
 
 
 # -------------------------------mqtt code-------------------------

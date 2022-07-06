@@ -4,7 +4,7 @@ $(document).ready(function () {
   const qrCodeSuccessCallback = (decodedText, decodedResult) => {
     /* handle success */
     console.log(decodedText, decodedResult)
-    html5QrCode.stop()
+
   };
 
   function startQRcode() {
@@ -51,6 +51,7 @@ $(document).ready(function () {
   // If you want to prefer back camera
   // html5QrCode.start({ facingMode: "environment" }, config, qrCodeSuccessCallback);
   $('#start-scan').click(function () {
+    qrCodeSuccessCallback()
     startQRcode();
     $(this).addClass("d-none")
     $('#QR_codedata').val("")

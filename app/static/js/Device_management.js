@@ -12,6 +12,98 @@ $(document).ready(function () {
         }
     })
 
+    $("img").click(function () {
+        let device_mac = $(this).parent().parent().attr("id")
+        const swalWithBootstrapButtons = Swal.mixin({
+            customClass: {
+                confirmButton: 'btn btn-success',
+                cancelButton: 'btn btn-danger'
+            },
+            buttonsStyling: false
+        })
+
+        swalWithBootstrapButtons.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'No, cancel!',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                swalWithBootstrapButtons.fire(
+                    'Deleted!',
+                    'Your file has been deleted.',
+                    'success'
+                )
+                $.ajax({
+                    url: url_href + "/delete",
+                    type: "POST",
+                    dataType: "json",
+                    contentType: "application/json;charset=utf-8",
+                    data: JSON.stringify({ "delete_mac": device_mac }),
+                    success: function (returnData) {
+                        console.log(returnData);
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        console.log(xhr.status);
+                        console.log(thrownError);
+                    }
+                })
+                $(this).parent().parent().remove()
+            } else if (
+                /* Read more about handling dismissals below */
+                result.dismiss === Swal.DismissReason.cancel
+            ) {
+                swalWithBootstrapButtons.fire(
+                    'Cancelled',
+                    'Your imaginary file is safe :)',
+                    'error'
+                )
+            }
+        })
+    })
+
+    var countInterval = setInterval(function interval() {
+        $.ajax({
+            url: "/powermeter_list_device",
+            type: "GET",
+            dataType: "json",
+            contentType: "application/json;charset=utf-8",
+            success: function (returnData) {
+                // console.log(returnData)
+                try {
+                    let old_meterdata = $("tr[name='PowerMeter']")
+                    if (old_meterdata.length != 0) {
+                        old_meterdata.remove()
+                    }
+                    let str = "";
+                    for (let i = 0; i < returnData.length; i++) {
+                        // console.log(returnData[i].device)
+                        str += '<tr id=' + returnData[i].device + ' name=' + returnData[i].deviceType + '>'
+                        str += ' <th class="col-sm-2 col-3"></th>'
+                        str += ' <td class="col-sm-4 col-4" ><a href="/powermeter?devicename=' + returnData[i].device + '">' + returnData[i].device + '</a></td>'
+                        str += ' <td class="col-sm-4 col-3">' + returnData[i].deviceType + '</td>'
+                        str += ' <th class="col-sm-2 col-2" ></th>'
+                        str += '</tr>'
+                    }
+
+                    $('tbody').append(str)
+                } catch (error) {
+                    console.log("returnData")
+                }
+
+
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                console.log(xhr.status);
+                console.log(thrownError);
+            }
+        })
+        return interval;
+    }(), 5000);
+
 
     $("#send_data").click(function () {
         let postdata = [];
@@ -40,47 +132,69 @@ $(document).ready(function () {
             }
         })
 
+        Swal.fire(
+            'success',
+            '',
+            'success'
+          )
     })
-    var countInterval=setInterval(function interval() {
-        $.ajax({
-            url: "/powermeter_list_device",
-            type: "GET",
-            dataType: "json",
-            contentType: "application/json;charset=utf-8",
-            success: function (returnData) {
-                try {
-                    let old_meterdata = $("tr[name='PowerMeter']")
-                    if (old_meterdata.length != 0) {
-                        old_meterdata.remove()
-                    }
-                    let str = "";
-                    for (let i = 0; i < returnData.length; i++) {
-                        // console.log(returnData[i].device)
-                        str += '<tr id=' + returnData[i].device + ' name=' + returnData[i].deviceType + '>'
-                        str += ' <th class="col-2"><input type="checkbox"   aria-label="Checkbox for following text input" disabled></th>'
-                        str += ' <td class="col-6" ><a href="/powermeter?devicename=' + returnData[i].device + '">' + returnData[i].device + '</a></td>'
-                        str += ' <td class="col-4">' + returnData[i].deviceType + '</td>'
-                        str += '</tr>'
-                    }
 
-                    $('tbody').append(str)
-                } catch (error) {
-                    console.log("returnData")
-                }
-                if ($("tr[name='PowerMeter']")) {
-                    console.log("存在")
-                } else {
-                    console.log("不存在")
-                }
-
+    $("#clear_data").click(function () {
+     
+        const swalWithBootstrapButtons = Swal.mixin({
+            customClass: {
+                confirmButton: 'btn btn-success',
+                cancelButton: 'btn btn-danger'
             },
-            error: function (xhr, ajaxOptions, thrownError) {
-                console.log(xhr.status);
-                console.log(thrownError);
+            buttonsStyling: false
+        })
+
+        swalWithBootstrapButtons.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'No, cancel!',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                swalWithBootstrapButtons.fire(
+                    'Deleted!',
+                    'Your file has been deleted.',
+                    'success'
+                )
+                $.ajax({
+                    url: url_href + "/deleteall",
+                    type: "POST",
+                    dataType: "json",
+                    contentType: "application/json;charset=utf-8",
+                    data: JSON.stringify(),
+                    success: function (returnData) {
+                        console.log(returnData);
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        console.log(xhr.status);
+                        console.log(thrownError);
+                    }
+                })
+
+                $("input[name='Checkbox[]']").each(function () {
+                    $(this).parent().parent().remove()
+                })
+
+            } else if (
+                /* Read more about handling dismissals below */
+                result.dismiss === Swal.DismissReason.cancel
+            ) {
+                swalWithBootstrapButtons.fire(
+                    'Cancelled',
+                    'Your imaginary file is safe :)',
+                    'error'
+                )
             }
         })
-        return interval;
-    }(), 5000);
+    })
 
 });
 
