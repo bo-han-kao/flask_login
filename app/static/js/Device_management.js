@@ -82,10 +82,10 @@ $(document).ready(function () {
                     for (let i = 0; i < returnData.length; i++) {
                         // console.log(returnData[i].device)
                         str += '<tr id=' + returnData[i].device + ' name=' + returnData[i].deviceType + '>'
-                        str += ' <th class="col-sm-2 col-2"></th>'
-                        str += ' <td class="col-sm-4 col-4" ><a href="/powermeter?devicename=' + returnData[i].device + '">' + returnData[i].device + '</a></td>'
-                        str += ' <td class="col-sm-4 col-3">' + returnData[i].deviceType + '</td>'
-                        str += ' <th class="col-sm-2 col-3" ></th>'
+                        str += ' <th class="thead-sub"></th>'
+                        str += ' <td class="thead-uuid" ><a href="/powermeter?devicename=' + returnData[i].device + '">' + returnData[i].device + '</a></td>'
+                        str += ' <td class="thead-type">' + returnData[i].deviceType + '</td>'
+                        str += ' <th class="thead-delete" ></th>'
                         str += '</tr>'
                     }
 

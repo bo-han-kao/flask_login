@@ -19,6 +19,20 @@ thead {
     width: 100%;
 }
 
+.thead-sub{
+    width: 8%;
+}
+.thead-uuid{
+    width: auto;
+}
+.thead-type{
+    width: auto;
+}
+.thead-delete{
+    width: 13%;
+}
+
+
 tbody {
     flex: 1 1 auto;
     display: block;
@@ -28,6 +42,8 @@ tbody {
     /* padding-left: 7px; */
     font-size: 3vmin;
 }
+
+
 
 tr {
     width: 100%;
@@ -66,8 +82,20 @@ th {
 }
 
 @media screen and (max-width:990px) {
+    .thead-sub{
+        width: 15%;
+    }
+    
     tr img {
-        width: 30%;
+        width: 40%;
     }
 
+}
+
+
+@media screen and (max-width:576px) {
+    
+    .thead-delete{
+        width: 20%;
+    }
 }
