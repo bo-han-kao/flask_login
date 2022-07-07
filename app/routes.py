@@ -118,7 +118,8 @@ def register():
                 line_uuid=request.form['Line_uuid']
                 user=User(username=user,password=password,Line_uuid=line_uuid)
             else:
-                user=User(username=user,password=password)
+                user=User(username=user,password=password,Line_uuid='test')
+                
             db.session.add(user)
             db.session.commit()
             return redirect(url_for('login'))

@@ -9,10 +9,10 @@
     <table class="table table-bordered" id="tab"> 
         <thead class="thead-dark d-flex">
             <tr class="">
-                <th class="col-sm-2 col-3"> sub <input type="checkbox" id="checkall" ></th>
-                <th class="col-sm-4 col-4">UUID</th>
+                <th class="col-sm-2 col-2 "> sub <input type="checkbox" id="checkall" ></th>
+                <th class="col-sm-4 col-4  ">UUID</th>
                 <th class="col-sm-4 col-3">Type</th>
-                <th class="col-sm-2 col-2">delet</th>
+                <th class="col-sm-2 col-3 ">delete</th>
              
                 <!-- <th scope="col">Handle</th> -->
             </tr>
@@ -26,11 +26,11 @@
                 <td class="col-4">Otto</td>
             </tr> -->
             {%for data in tabledata%}
-            <tr id={{data['Device_Mac']}}>
-                <th class="col-sm-2 col-3"><input type="checkbox" name="Checkbox[]"  aria-label="Checkbox for following text input" {{ "checked" if data['Device_status'] == True}}></th>
+            <tr  id={{data['Device_Mac']}}>
+                <th class="col-sm-2 col-2"><input type="checkbox" name="Checkbox[]"  aria-label="Checkbox for following text input" {{ "checked" if data['Device_status'] == True}}></th>
                 <td class="col-sm-4 col-4" >{{data['Device_Mac']}}</td>
                 <td class="col-sm-4 col-3"  >{{data['Device_type']}}</td>
-                <th class="col-sm-2 col-2" ><img src="{{url_for('static',filename='img/Device_management/delete.svg')}}" alt=""></th>
+                <th class="col-sm-2 col-3" ><img src="{{url_for('static',filename='img/Device_management/delete.svg')}}" alt=""></th>
             </tr>
             {%endfor%}
         </tbody>
