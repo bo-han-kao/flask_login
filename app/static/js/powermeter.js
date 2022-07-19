@@ -21,4 +21,39 @@ $(document).ready(function () {
         })
         return interval;
     }(), 5000)
+
+
+    $('.page1_toggle').click(function () {
+        var mainParent = $(this).parent('.toggle-btn');
+        let select_device = $("#select_device").val();
+        let page2_toggle_state = "";
+        if ($(mainParent).find('input.cb-value').is(':checked')) {
+          $(mainParent).addClass('active');
+          console.log("page2 on")
+          page2_toggle_state = "ON";
+        } else {
+          console.log("page2 off")
+          $(mainParent).removeClass('active');
+          page2_toggle_state = "OFF";
+        }
+    
+        let relay_status = {
+          "relay_status": page2_toggle_state
+        }
+    
+        // $.ajax({
+        //   type: "POST",
+        //   url: url_href+"/powermeter_relay",
+        //   data: JSON.stringify(relay_status),
+        //   dataType: "json",
+        //   contentType: "application/json;charset=utf-8",
+        //   success: function (returndata) {
+        //     console.log(returndata)
+        //   },
+        //   error: function (XMLHttpRequest, textStatus, errorThrown) {
+        //     console.log(XMLHttpRequest.responseText);
+        //   }
+        // })
+    
+      })
 })

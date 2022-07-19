@@ -9,7 +9,7 @@ $(document).ready(function () {
 
   function startQRcode() {
     html5QrCode.start(
-      { facingMode: "environment" },
+      { facingMode: "user" },
       {
         fps: 10,    // Optional frame per seconds for qr code scanning
         qrbox: { width: 200, height: 200 }  // Optional if you want bounded box UI
@@ -18,24 +18,26 @@ $(document).ready(function () {
         // do something when code is read
         console.log(qrCodeMessage)
         data_obj = JSON.parse(qrCodeMessage)
-        if (!data_obj["mqtt_dongle_id"]) {
-          let  str='';
-          str+=' <div class="alert alert-danger" id="msg" role="alert">'
-          str+=' paload error'
-          str+='</div>'
+        console.log(typeof(data_obj))
+        if (data_obj["GW2"]) {
+          let str = '';
+          str += ' <div class="alert alert-success" id="msg" role="alert">'
+          str += 'sucess to scan'
+          str += '</div>'
           $('#alertbox').html(str)
+          $('#QR_codedata').val(data_obj["GW2"])
           $('#msg').fadeOut(3000);
-        } else {
-          $('#QR_codedata').val(data_obj["mqtt_dongle_id"])
-          let  str='';
-          str+=' <div class="alert alert-success" id="msg" role="alert">'
-          str+='sucess to scan'
-          str+='</div>'
-          $('#alertbox').html(str)
-          $('#msg').fadeOut(5000);
           html5QrCode.stop();
           $('#end-scan').addClass("d-none")
           $('#start-scan').removeClass("d-none")
+          
+        } else {
+          let str = '';
+          str += ' <div class="alert alert-danger" id="msg" role="alert">'
+          str += ' paload error'
+          str += '</div>'
+          $('#alertbox').html(str)
+          $('#msg').fadeOut(5000);
         }
 
       },
@@ -77,10 +79,10 @@ $(document).ready(function () {
       data: JSON.stringify(postdata),
       success: function (returnData) {
         console.log(returnData);
-        let  str='';
-        str+=' <div class="alert alert-success" id="msg" role="alert">'
-        str+=' success to bind dongle'
-        str+='</div>'
+        let str = '';
+        str += ' <div class="alert alert-success" id="msg" role="alert">'
+        str += ' success to bind dongle'
+        str += '</div>'
         $('#alertbox').html(str)
         $('#msg').fadeOut(5000);
       },

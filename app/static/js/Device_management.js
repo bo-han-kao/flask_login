@@ -65,44 +65,44 @@ $(document).ready(function () {
         })
     })
 
-    var countInterval = setInterval(function interval() {
-        $.ajax({
-            url: "/powermeter_list_device",
-            type: "GET",
-            dataType: "json",
-            contentType: "application/json;charset=utf-8",
-            success: function (returnData) {
-                // console.log(returnData)
-                try {
-                    let old_meterdata = $("tr[name='PowerMeter']")
-                    if (old_meterdata.length != 0) {
-                        old_meterdata.remove()
-                    }
-                    let str = "";
-                    for (let i = 0; i < returnData.length; i++) {
-                        // console.log(returnData[i].device)
-                        str += '<tr id=' + returnData[i].device + ' name=' + returnData[i].deviceType + '>'
-                        str += ' <th class="thead-sub"></th>'
-                        str += ' <td class="thead-uuid" ><a href="/powermeter?devicename=' + returnData[i].device + '">' + returnData[i].device + '</a></td>'
-                        str += ' <td class="thead-type">' + returnData[i].deviceType + '</td>'
-                        str += ' <th class="thead-delete" ></th>'
-                        str += '</tr>'
-                    }
+    // var countInterval = setInterval(function interval() {
+    //     $.ajax({
+    //         url: "/powermeter_list_device",
+    //         type: "GET",
+    //         dataType: "json",
+    //         contentType: "application/json;charset=utf-8",
+    //         success: function (returnData) {
+    //             // console.log(returnData)
+    //             try {
+    //                 let old_meterdata = $("tr[name='PowerMeter']")
+    //                 if (old_meterdata.length != 0) {
+    //                     old_meterdata.remove()
+    //                 }
+    //                 let str = "";
+    //                 for (let i = 0; i < returnData.length; i++) {
+    //                     // console.log(returnData[i].device)
+    //                     str += '<tr id=' + returnData[i].device + ' name=' + returnData[i].deviceType + '>'
+    //                     str += ' <th class="thead-sub"></th>'
+    //                     str += ' <td class="thead-uuid" ><a href="/powermeter?devicename=' + returnData[i].device + '">' + returnData[i].device + '</a></td>'
+    //                     str += ' <td class="thead-type">' + returnData[i].deviceType + '</td>'
+    //                     str += ' <th class="thead-delete" ></th>'
+    //                     str += '</tr>'
+    //                 }
 
-                    $('tbody').append(str)
-                } catch (error) {
-                    console.log("returnData")
-                }
+    //                 $('tbody').append(str)
+    //             } catch (error) {
+    //                 console.log("returnData")
+    //             }
 
 
-            },
-            error: function (xhr, ajaxOptions, thrownError) {
-                console.log(xhr.status);
-                console.log(thrownError);
-            }
-        })
-        return interval;
-    }(), 5000);
+    //         },
+    //         error: function (xhr, ajaxOptions, thrownError) {
+    //             console.log(xhr.status);
+    //             console.log(thrownError);
+    //         }
+    //     })
+    //     return interval;
+    // }(), 5000);
 
 
     $("#send_data").click(function () {
@@ -178,10 +178,11 @@ $(document).ready(function () {
                         console.log(thrownError);
                     }
                 })
-
-                $("input[name='Checkbox[]']").each(function () {
-                    $(this).parent().parent().remove()
-                })
+                // 清除有checkbox的item
+                // $("input[name='Checkbox[]']").each(function () {
+                //     $(this).parent().parent().remove()
+                // })
+                $("tbody > tr").remove()
 
             } else if (
                 /* Read more about handling dismissals below */

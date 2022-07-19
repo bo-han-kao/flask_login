@@ -118,7 +118,7 @@ def register():
                 line_uuid=request.form['Line_uuid']
                 user=User(username=user,password=password,Line_uuid=line_uuid)
             else:
-                user=User(username=user,password=password,Line_uuid='test')
+                user=User(username=user,password=password)
                 
             db.session.add(user)
             db.session.commit()
@@ -191,7 +191,9 @@ def line_notify_test():
 def testform():
     if request.method == 'POST':
         G1_mac=request.form['mac']
-        User.query.filter_by(username=flask_session['user']).update({'G1_mac':G1_mac})
+        # User.query.filter_by(username=flask_session['user']).update({'G1_mac':G1_mac})
+        newDevice=Notify_status(username=flask_session['user'],Device_Mac=G1_mac,Device_type='occupancy',Device_status=1)
+        db.session.add(newDevice)
         db.session.commit()
     return render_template('testform.html')
 
@@ -212,7 +214,7 @@ def html5_qrcode_edit():
 def Device_management():
     array=[]
     # j=User.query.join(Notify_status,User.Line_uuid==Notify_status.Line_uuid)
-    result =db.session.query(User.username,Notify_status.Device_Mac,Notify_status.Device_status,Notify_status.Device_type).filter(User.username==flask_session['user']).filter(User.Line_uuid==Notify_status.Line_uuid).all()
+    result =db.session.query(User.username,Notify_status.Device_Mac,Notify_status.Device_status,Notify_status.Device_type).filter(User.username==flask_session['user']).filter(User.username==Notify_status.username).all()
     # for row in db.session.execute(stmt):
     #     print(f"{row.User.username} {row.Address.Device_Mac}")
     for i in range (len(result)):
@@ -233,10 +235,10 @@ def Device_management_edit():
         # p=db.session.query(Notify_status).filter_by( User.username=flask_session['user'] and User.Line_uuid=Notify_status.Line_uuid and  Notify_status.Device_Mac='EA083F58FDC4').update({Notify_status.Device_status: False}, synchronize_session='fetch')
         # stmt=(update(Notify_status).values(Device_status=0).where(Notify_status.Device_Mac=='EA083F58FDC4'))
         # p=update(Notify_status).values(Device_status=0).filter(exists().where(User.Line_uuid==Notify_status.Line_uuid , User.username=='jack' ,Notify_status.Device_Mac=='EA083F58FDC4'))
-        user_lineuuid=User.query.filter_by(username=flask_session['user']).first().Line_uuid
+        user=User.query.filter_by(username=flask_session['user']).first().username
         font_end_data=request.json
         for i in font_end_data:
-            Notify_status.query.filter(Notify_status.Line_uuid==user_lineuuid , Notify_status.Device_Mac==i['devicename']).update({'Device_status':i['status']})
+            Notify_status.query.filter(Notify_status.username==user , Notify_status.Device_Mac==i['devicename']).update({'Device_status':i['status']})
             db.session.commit()
         return {'state':'200'}
 
@@ -245,8 +247,8 @@ def Device_management_edit():
 def Device_management_delete():
    if request.method == 'POST':
         font_end_data=request.json
-        user_lineuuid=User.query.filter_by(username=flask_session['user']).first().Line_uuid
-        Notify_status.query.filter_by(Line_uuid=user_lineuuid,Device_Mac=font_end_data['delete_mac']).delete()
+        user=User.query.filter_by(username=flask_session['user']).first().username
+        Notify_status.query.filter_by(usermame=user,Device_Mac=font_end_data['delete_mac']).delete()
         db.session.commit()
         print(font_end_data['delete_mac'])
         return {'state':'200','msg':'delete ok'}
@@ -254,8 +256,8 @@ def Device_management_delete():
 @app.route('/Device_management/deleteall',methods=['POST'])
 def Device_management_deleteall():
    if request.method == 'POST':
-        user_lineuuid=User.query.filter_by(username=flask_session['user']).first().Line_uuid
-        Notify_status.query.filter_by(Line_uuid=user_lineuuid).delete()
+        user=User.query.filter_by(username=flask_session['user']).first().username
+        Notify_status.query.filter_by(username=user).delete()
         db.session.commit()
         return {'state':'200','msg':'delete_all ok'}
 
@@ -274,9 +276,6 @@ def powermeter_list_device():
        
         return json.dumps(powermeter_device)
 
-
-
-
 @app.route('/powermeter',methods=['GET','POST'])
 def powermeter():
     if request.method == 'POST':
@@ -292,20 +291,25 @@ def powermeter():
         mqtt_dongle_id=User.query.filter(User.username==flask_session['user']).first().mqtt_dongle_id
         parsed = urlparse.urlparse(request.url)
         meter_devicName=parsed.query.split('=')[1]
-        # print(power_meter_data[mqtt_dongle_id][meter_devicName])
+        print(mqtt_dongle_id,meter_devicName)
         pmd = power_meter_data[mqtt_dongle_id][meter_devicName][1:]
+        print(pmd)
         for key, val in zip(to_fondend_data, pmd):
             to_fondend_data[key] = val
         # print(to_fondend_data)
         return(json.dumps(to_fondend_data))
     return render_template('powermeter.html')
 
+# @app.route('/powermeter_relay',methods=['POST'])
+# def powermeter_relay():
+#     if request.method=='POST':
+#         pass
+
 
 # -------------------------------mqtt code-------------------------
 def on_connect(client, userdata, flags, rc):
     # print(f'Connected with result code {rc}')
     client.subscribe('mqtt_dongle/read/+')
-
 
 def on_message(client, userdata, msg):
     try:
@@ -345,7 +349,13 @@ def subscribe():
     print('Start subscribing...')
     client.loop_start()
     return client
-
-
 client = subscribe()
+
+# def publishtest(mqtt_id,device_Mac,relay_status):
+#     payload=f'{{"{{"action":"set_relay","device_id":"{device_Mac}","relay":"{relay_status}"}}"}}'
+#     client.publish("mqtt_dongle/write/"+mqtt_id, payload)
+#     print("mqtt_dongle/write/"+mqtt_id)
+#     print(payload)
+#     print("startpub")
+# publishtest("F08E4B12E4CE","C5B024672C48","OFF")
 # -------------------------------mqtt code-------------------------

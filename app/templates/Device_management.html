@@ -13,7 +13,6 @@
                 <th class=" thead-uuid">UUID</th>
                 <th class=" thead-type">Type</th>
                 <th class=" thead-delete">delete</th>
-
                 <!-- <th scope="col">Handle</th> -->
             </tr>
         </thead>
@@ -26,6 +25,16 @@
                 <td class="col-4">Otto</td>
             </tr> -->
             {%for data in tabledata%}
+            {%if data['Device_type']=="PowerMeter"%}
+            <tr id={{data['Device_Mac']}} name={{data['Device_type']}}>
+                <th class=" thead-sub">
+                </th>
+                <td class=" thead-uuid"><a href="/powermeter?devicename={{data['Device_Mac']}}">{{data['Device_Mac']}}</a></td>
+                <td class=" thead-type">{{data['Device_type']}}</td>
+                <th class=" thead-delete"><img src="{{url_for('static',filename='img/Device_management/delete.svg')}}"
+                        alt=""></th>
+            </tr>
+            {%else%}
             <tr id={{data['Device_Mac']}}>
                 <th class=" thead-sub"><input type="checkbox" name="Checkbox[]"
                         aria-label="Checkbox for following text input" {{ "checked" if data['Device_status']==True}}>
@@ -35,6 +44,7 @@
                 <th class=" thead-delete"><img src="{{url_for('static',filename='img/Device_management/delete.svg')}}"
                         alt=""></th>
             </tr>
+            {%endif%}
             {%endfor%}
         </tbody>
     </table>
