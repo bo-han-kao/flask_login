@@ -28,12 +28,10 @@ MQTT_BROKER_PORT = config.getint('DEFAULT', 'MQTT_BROKER_PORT')
 
 DEVICE_TYPE = {
     0: 'power_meter',
-    1: 'smart_watch',
-    2: 'sensor',
-    3: 'switch'
+    2: 'co2_sensor'
 }
 
-power_meter_data = defaultdict(lambda: defaultdict(dict))
+mqtt_dongle_data = defaultdict(lambda: defaultdict(dict))
 # -------------------------------mqtt use-------------------------
 
 @app.before_request
@@ -248,9 +246,9 @@ def Device_management_delete():
    if request.method == 'POST':
         font_end_data=request.json
         user=User.query.filter_by(username=flask_session['user']).first().username
-        Notify_status.query.filter_by(usermame=user,Device_Mac=font_end_data['delete_mac']).delete()
+        Notify_status.query.filter_by(username=user,Device_Mac=font_end_data['delete_mac']).delete()
+        # print(Notify_status.query.filter_by(username=user).first())
         db.session.commit()
-        print(font_end_data['delete_mac'])
         return {'state':'200','msg':'delete ok'}
 
 @app.route('/Device_management/deleteall',methods=['POST'])
@@ -261,50 +259,56 @@ def Device_management_deleteall():
         db.session.commit()
         return {'state':'200','msg':'delete_all ok'}
 
-
-@app.route('/powermeter_list_device',methods=['GET'])
-def powermeter_list_device():
-    mqtt_dongle_id=User.query.filter(User.username==flask_session['user']).first().mqtt_dongle_id
-    if mqtt_dongle_id=='' or mqtt_dongle_id=='None' or mqtt_dongle_id==null:
-       
-        return {'code':'200','msg':'no found dongle_id'}
-    else:
-        powermeter_device=[]
-        for key in power_meter_data[mqtt_dongle_id].keys():
-            if key:
-                powermeter_device.append({'device':key,'deviceType':'PowerMeter'})
-       
-        return json.dumps(powermeter_device)
+# 用AJAX取得資料
+# @app.route('/powermeter_list_device',methods=['GET'])
+# def powermeter_list_device():
+#     mqtt_dongle_id=User.query.filter(User.username==flask_session['user']).first().mqtt_dongle_id
+#     if mqtt_dongle_id=='' or mqtt_dongle_id=='None' or mqtt_dongle_id==null:
+#         return {'code':'200','msg':'no found dongle_id'}
+#     else:
+#         powermeter_device=[]
+#         for key in mqtt_dongle_data[mqtt_dongle_id].keys():
+#             if key:
+#                 powermeter_device.append({'device':key,'deviceType':'PowerMeter'})       
+#         return json.dumps(powermeter_device)
 
 @app.route('/powermeter',methods=['GET','POST'])
 def powermeter():
     if request.method == 'POST':
-        to_fondend_data={
-        'watt_hour':'',
-        'watt':'',
-        'volt':'',
-        'current':'',
-        'frequency':'',
-        'rssi':'',
-        'data_type':''
-        }
         mqtt_dongle_id=User.query.filter(User.username==flask_session['user']).first().mqtt_dongle_id
         parsed = urlparse.urlparse(request.url)
         meter_devicName=parsed.query.split('=')[1]
-        print(mqtt_dongle_id,meter_devicName)
-        pmd = power_meter_data[mqtt_dongle_id][meter_devicName][1:]
-        print(pmd)
-        for key, val in zip(to_fondend_data, pmd):
-            to_fondend_data[key] = val
-        # print(to_fondend_data)
-        return(json.dumps(to_fondend_data))
+        if request.json['control']=='relay_control':
+            relay_status= request.json['relay_status']
+            PublishRelay(mqtt_dongle_id,meter_devicName,relay_status)
+            print(relay_status)
+            return({'relay_status':relay_status})
+        else:
+            to_fondend_data={
+            'watt_hour':'',
+            'watt':'',
+            'volt':'',
+            'current':'',
+            'frequency':'',
+            'rssi':'',
+            'data_type':''
+            }
+            pmd = mqtt_dongle_data[mqtt_dongle_id][meter_devicName][1:]
+            print(pmd)
+            for key, val in zip(to_fondend_data, pmd):
+                to_fondend_data[key] = val
+            # print(to_fondend_data)
+            return(json.dumps(to_fondend_data))
+            
     return render_template('powermeter.html')
 
-# @app.route('/powermeter_relay',methods=['POST'])
-# def powermeter_relay():
-#     if request.method=='POST':
-#         pass
-
+@app.route('/CO2',methods=['GET','POST'])
+def CO2():
+    mqtt_dongle_id=User.query.filter(User.username==flask_session['user']).first().mqtt_dongle_id
+    parsed = urlparse.urlparse(request.url)
+    CO2_devicName=parsed.query.split('=')[1]
+    pmd = mqtt_dongle_data[mqtt_dongle_id][CO2_devicName][1:]
+    return(json.dumps(pmd))
 
 # -------------------------------mqtt code-------------------------
 def on_connect(client, userdata, flags, rc):
@@ -328,12 +332,12 @@ def on_message(client, userdata, msg):
 def get_device_data(topic, payload):
     mqtt_dongle_id = topic.split('/')[-1]
     data = payload['device']['data']
-    device_type = DEVICE_TYPE[data[-1]]
+    device_type = data[-1]
     device_id = data[0]
-    if device_type == 'power_meter':
-        
-        power_meter_data[mqtt_dongle_id][device_id] = data
-        # print(power_meter_data)
+    if device_type in DEVICE_TYPE:
+        # print(f'data: {data}')
+        mqtt_dongle_data[mqtt_dongle_id][device_id] = data
+        # print(mqtt_dongle_data)
 
 def subscribe():
     client = mqtt_config.MQTTConfig()
@@ -351,11 +355,11 @@ def subscribe():
     return client
 client = subscribe()
 
-# def publishtest(mqtt_id,device_Mac,relay_status):
-#     payload=f'{{"{{"action":"set_relay","device_id":"{device_Mac}","relay":"{relay_status}"}}"}}'
-#     client.publish("mqtt_dongle/write/"+mqtt_id, payload)
-#     print("mqtt_dongle/write/"+mqtt_id)
-#     print(payload)
-#     print("startpub")
-# publishtest("F08E4B12E4CE","C5B024672C48","OFF")
+def PublishRelay(mqtt_id,device_Mac,relay_status):
+    payload=f'{{"{{"action":"set_relay","device_id":"{device_Mac}","relay":"{relay_status}"}}"}}'
+    client.publish("mqtt_dongle/write/"+mqtt_id, payload)
+    print("mqtt_dongle/write/"+mqtt_id)
+    print(payload)
+    print("startpub")
+# PublishRelay("F08E4B12E4CE","C5B024672C48","OFF")
 # -------------------------------mqtt code-------------------------

@@ -8,7 +8,7 @@ class User(db.Model):
     NotifyToken = db.Column(db.String(120), nullable=True)
     Line_uuid = db.Column(db.String(120), nullable=True)
     mqtt_dongle_id = db.Column(db.String(120), nullable=True)
-    # G1_mac = db.Column(db.String(120), nullable=True)
+    phone_number = db.Column(db.String(120), nullable=True)
 
     children = db.relationship('Notify_status',back_populates="parent",cascade="all, delete-orphan")
     def __repr__(self):

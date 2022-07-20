@@ -34,6 +34,15 @@
                 <th class=" thead-delete"><img src="{{url_for('static',filename='img/Device_management/delete.svg')}}"
                         alt=""></th>
             </tr>
+            {%elif data['Device_type']=="CO2"%}
+            <tr id={{data['Device_Mac']}} name={{data['Device_type']}}>
+                <th class=" thead-sub">
+                </th>
+                <td class=" thead-uuid"><a href="/CO2?devicename={{data['Device_Mac']}}">{{data['Device_Mac']}}</a></td>
+                <td class=" thead-type">{{data['Device_type']}}</td>
+                <th class=" thead-delete"><img src="{{url_for('static',filename='img/Device_management/delete.svg')}}"
+                        alt=""></th>
+            </tr>
             {%else%}
             <tr id={{data['Device_Mac']}}>
                 <th class=" thead-sub"><input type="checkbox" name="Checkbox[]"

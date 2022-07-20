@@ -65,6 +65,10 @@ th {
     text-decoration: underline;
 }
 
+[name="CO2"] a {
+    text-decoration: underline;
+}
+
 @media screen and (max-height:850px) {
     tbody {
         height: 600px;
