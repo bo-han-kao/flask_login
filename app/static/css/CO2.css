@@ -1,0 +1,46 @@
+article {
+    height: 60vh;
+    width: 35vw;
+    background-color: turquoise;
+    margin: auto;
+}
+
+p {
+    margin: 0px;
+}
+
+.data_box_width {
+    width: 99.9%;
+    height: 25%;
+    /* border: 1px solid black; */
+    display: flex;
+}
+
+.image_box {
+    width: 50%;
+    height: 100%;
+}
+
+.image_box img {
+    height: 80%;
+}
+
+.data_box {
+    width: 50%;
+    height: 100%;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    flex-direction: column;
+}
+
+.list_data {
+    /* align-content: center; */
+    font-size: 4vmin;
+    padding-bottom: 10%;
+}
+
+.date_time {
+
+    /* align-content: flex-end; */
+}

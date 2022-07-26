@@ -4,6 +4,10 @@ from tkinter import N
 from flask import Flask, flash,render_template,request,redirect,url_for,session as flask_session
 from urllib.parse import parse_qs
 import urllib.parse as urlparse
+import base64
+import time
+import os
+import crypt
 
 from sqlalchemy import false, join, null, table,text, true, values,update,exists
 from sqlalchemy.sql import select
@@ -18,17 +22,23 @@ import configparser
 import json
 import traceback
 from collections import defaultdict
-from package import mqtt_config
+from package import mqtt_config, db_op
 
 # Read configuration file.
 config = configparser.ConfigParser()
 config.read('config.ini')
 MQTT_BROKER_HOST = config.get('DEFAULT', 'MQTT_BROKER_HOST')
 MQTT_BROKER_PORT = config.getint('DEFAULT', 'MQTT_BROKER_PORT')
+SERVER_HOST = config.get('DEFAULT', 'SERVER_HOST')
+SERVER_PORT = config.getint('DEFAULT', 'SERVER_PORT')
+SERVER_URL = f'http://{SERVER_HOST}:{SERVER_PORT}/v2'
 
 DEVICE_TYPE = {
-    0: 'power_meter',
-    2: 'co2_sensor'
+    0: 'PowerMeter',
+    1: 'smart_watch',
+    2: 'CO2_VOC_Temp',
+    3: 'sensor',
+    4: 'switch'
 }
 
 mqtt_dongle_data = defaultdict(lambda: defaultdict(dict))
@@ -47,14 +57,25 @@ def login_require():
 @app.route('/')
 def index():
     return render_template('index.html')
-
+    
 @app.route('/login',methods=['POST','GET'])
 def login():
     # 網址資訊
+
     parsed = urlparse.urlparse(request.url)
+    # key = "wentaiwentaiwentaiwentai"
+    # print(parsed.query,type(parsed.query))
+    # s2 = crypt.decrypt(key,'M548aeQznqJti0TnCPKlZY/dNFIUB4anwaxDNMsjuNdOcPK2GWytEjk+NK3KD1OS51K4vlop403V+2XdPl6Uvw==') 
+    # print(s2)
+    # print((crypt.decrypt(key,'M548aeQznqJti0TnCPKlZY%2FdNFIUB4anwaxDNMsjuNdOcPK2GWytEjk+NK3KD1OS51K4vlop403V+2XdPl6Uvw==')))
+    # print(parsed)
+    # testdecrypt=decrypt(key,parsed)
     # 看網址是否含LINE_UUID參數
+    
+    print(request)
+    
     groupQuery = 'LINE_UUID' in parse_qs(parsed.query)
-    # print(groupQuery)
+    print(groupQuery)
     if groupQuery == True:
         # 取得line_uuid
         line_uuid=parsed.query.split('=')[1]
@@ -221,8 +242,6 @@ def Device_management():
         Device_type=result[i][3]
         data={'Device_Mac':Device_Mac,'Device_status':Device_status,'Device_type':Device_type}
         array.append(data)
-   
-
     return render_template('Device_management.html',tabledata=array)
 
 
@@ -304,16 +323,36 @@ def powermeter():
 
 @app.route('/CO2',methods=['GET','POST'])
 def CO2():
-    mqtt_dongle_id=User.query.filter(User.username==flask_session['user']).first().mqtt_dongle_id
-    parsed = urlparse.urlparse(request.url)
-    CO2_devicName=parsed.query.split('=')[1]
-    pmd = mqtt_dongle_data[mqtt_dongle_id][CO2_devicName][1:]
-    return(json.dumps(pmd))
+    if request.method=='POST':
+        to_fondend_data={
+                'battery':'',
+                'LED':'',
+                'TVOC':'',
+                'humidity':'',
+                'temperature':'',
+                'co2':'',
+                'rssi':'',
+                'data_type':''
+                }
+        mqtt_dongle_id=User.query.filter(User.username==flask_session['user']).first().mqtt_dongle_id
+        parsed = urlparse.urlparse(request.url)
+        CO2_devicName=parsed.query.split('=')[1]
+        pmd = mqtt_dongle_data[mqtt_dongle_id][CO2_devicName][1:]
+        for key, val in zip(to_fondend_data, pmd):
+                to_fondend_data[key] = val
+        return(json.dumps(to_fondend_data))
+    return render_template('CO2.html')
 
 # -------------------------------mqtt code-------------------------
 def on_connect(client, userdata, flags, rc):
-    # print(f'Connected with result code {rc}')
+    print(f'Connected with result code {rc}')
+    # client.subscribe('command/#')
     client.subscribe('mqtt_dongle/read/+')
+    # client.subscribe('get/notify/+')
+    # client.subscribe('set/notify/#')
+    # client.subscribe('MeetingRoomOccupancy')
+    # client.subscribe('MeetingRoomOccupancyJPEG')
+    client.subscribe('get/jpeg')
 
 def on_message(client, userdata, msg):
     try:
@@ -324,20 +363,164 @@ def on_message(client, userdata, msg):
             payload = json.loads('{' + msg.payload.decode() + '}')
         # print(f'Topic: {topic}')
         # print(f'Payload: {payload}')
-        get_device_data(topic, payload)
+        if topic.startswith('command/group/'):
+            control_light(payload, topic)
+        elif topic.startswith('command/smart_plug/'):
+            relay_on_off(payload, topic)
+        elif topic.startswith('mqtt_dongle/read/'):
+            get_device_data(topic, payload)
+        elif topic.startswith('set/notify/'):
+            set_device_notify(payload, topic)
+        elif topic.startswith('get/notify/'):
+            get_device_notify(client, payload, topic)
+        elif topic == 'MeetingRoomOccupancyJPEG':
+            push_occupancy_jpeg(payload)
+        elif topic == 'MeetingRoomOccupancy':
+            push_occupancy_message(payload)
+        elif topic == 'get/jpeg':
+            get_occupancy_jpeg(client, payload)
     except Exception:
         traceback.print_exc()
+
+def get_occupancy_jpeg(client, payload):
+    line_uuid = payload['line_uuid']
+    db = db_op.Database()
+    with db:
+        g1_mac = db.get_g1_mac(line_uuid)
+    with open(f'app/static/img/occupancy_{g1_mac}.jpeg', 'rb') as f:
+        image = base64.b64encode(f.read()).decode()
+    client.publish('get/jpeg/G1', image, qos=1)
+
+
+def push_occupancy_message(payload):
+    cameraid = payload['CameraID']
+    db = db_op.Database()
+    with db:
+        tokens = db.get_tokens(cameraid, 'occupancy')
+    for token in tokens:
+        if payload['Occupancy']:
+            message = "有人存在!!"  # 要發送的訊息
+            image = "app/static/img/G1 In.png"
+        else:
+            message = "有人離開!!"  # 要發送的訊息
+            image = "app/static/img/G1 out.png"
+        post_data(token[0], message, image)
+
+
+def push_occupancy_jpeg(payload):
+    cameraid = payload['CameraID']
+    filename = f'app/static/img/occupancy_raw_{cameraid}.jpeg'
+    jpegpayload = payload['JPEGPayload']
+    with open(filename, 'a') as f:
+        f.write(jpegpayload)
+    if payload['TotalMsg'] == payload['CurrentIdx']:
+        with open(filename, 'r') as raw:
+            with open(f'app/static/img/occupancy_{cameraid}.jpeg', 'wb') as ocu:
+                ocu.write(base64.b64decode(raw.read()))
+        os.remove(filename)
+        db = db_op.Database()
+        with db:
+            tokens = db.get_tokens(cameraid, 'occupancy')
+        for token in tokens:
+            message = '圖片推播'
+            image = f'app/static/img/occupancy_{cameraid}.jpeg'
+            post_data(token[0], message, image)
+
+
+def get_device_notify(client, payload, topic):
+    line_uuid = payload['line_uuid']
+    type_ = topic.split('/')[-1]
+    db = db_op.Database()
+    with db:
+        notify = db.get_notify(line_uuid, type_)
+    publish_payload = {
+        'line_uuid': line_uuid,
+        'type': type_,
+        'notify': bool(notify[0])
+    }
+    client.publish(f'get/notify/{type_}/return', json.dumps(publish_payload), qos=1)
+
+
+def set_device_notify(payload, topic):
+    line_uuid = payload['line_uuid']
+    type_ = topic.split('/')[-1]
+    db = db_op.Database()
+    with db:
+        db.set_notify(line_uuid, type_, payload['notify'])
 
 
 def get_device_data(topic, payload):
     mqtt_dongle_id = topic.split('/')[-1]
     data = payload['device']['data']
-    device_type = data[-1]
+    device_type = DEVICE_TYPE[data[-1]]
     device_id = data[0]
-    if device_type in DEVICE_TYPE:
-        # print(f'data: {data}')
+    if device_type in ('sensor', 'switch'):
+        on_off = data[1][-4:-2]
+        # print(on_off)
+        db = db_op.Database()
+        with db:
+            tokens = db.get_tokens(device_id, device_type, mqtt_dongle_id)
+        # print(tokens)
+        if device_type == 'sensor' and on_off == '01':
+            message = "有人闖入!!"  # 要發送的訊息
+            image = "app/static/img/sensor.png"
+            for token in tokens:
+                post_data(token[0], message, image)
+        elif device_type == 'switch' and on_off == '00':
+            message = '有人開窗!!'
+            image = 'app/static/img/switch.png'
+            for token in tokens:
+                post_data(token[0], message, image)
+    elif device_type in ('PowerMeter', 'CO2_VOC_Temp'):
         mqtt_dongle_data[mqtt_dongle_id][device_id] = data
-        # print(mqtt_dongle_data)
+    db = db_op.Database()
+    with db:
+        db.save_device_data(device_id, mqtt_dongle_id, device_type)
+
+
+def relay_on_off(payload, topic):
+    json_ = {
+        'cmd': 'write',
+        'device_id': payload['device_id'],
+        'func': 'RELAY',
+        'data': '',
+        'dongle_ip': payload['dongle_ip']
+    }
+    if topic.endswith('/relay_on'):
+        json_['data'] = 'ON'
+    elif topic.endswith('/relay_off'):
+        json_['data'] = 'OFF'
+    resp = requests.post(f'{SERVER_URL}/beacon/smartplug/relay', json=json_)
+    print(f'Response Content: {resp.content.decode("utf-8")}')
+
+
+def control_light(payload, topic):
+    json_ = {
+        'group': {
+            'id': payload['id'],
+            'uniAddress': payload['uniAddress'],
+            'state': {}
+        }
+    }
+    if topic.endswith('/all_on'):
+        json_['group']['state']['onOff'] = 1
+    elif topic.endswith('/all_off'):
+        json_['group']['state']['onOff'] = 0
+    elif topic.endswith('/all_yellow'):
+        json_['group']['state']['cct'] = 0
+    elif topic.endswith('/all_white'):
+        json_['group']['state']['cct'] = 255
+    elif topic.endswith('/all_cct_mid'):
+        json_['group']['state']['cct'] = 128
+    elif topic.endswith('/all_level_max'):
+        json_['group']['state']['level'] = 255
+    elif topic.endswith('/all_level_min'):
+        json_['group']['state']['level'] = 1
+    elif topic.endswith('/all_level_mid'):
+        json_['group']['state']['level'] = 128
+    resp = requests.patch(f'{SERVER_URL}/group', json=json_)
+    print(f'Response Content: {resp.content.decode("utf-8")}')
+
 
 def subscribe():
     client = mqtt_config.MQTTConfig()
@@ -348,11 +531,41 @@ def subscribe():
             client.connect(MQTT_BROKER_HOST, MQTT_BROKER_PORT)
         except Exception:
             traceback.print_exc()
+            time.sleep(0.1)
         else:
             break
     print('Start subscribing...')
     client.loop_start()
-    return client
+
+
+def post_data(token, message, image):
+    try:
+        if token is not None:
+            url = "https://notify-api.line.me/api/notify"
+            headers = {
+                'Authorization': f'Bearer {token}'
+            }
+            payload = {
+                'message': message
+            }
+            files = {
+                'imageFile': open(image, 'rb')
+            }
+            response = requests.request(
+                "POST",
+                url,
+                headers=headers,
+                data=payload,
+                files=files
+            )
+            if response.status_code == 200:
+                print(f"Success -> {response.text}")
+            else:
+                print(response.content)
+    except Exception as _:
+        print(_)
+
+
 client = subscribe()
 
 def PublishRelay(mqtt_id,device_Mac,relay_status):
@@ -362,4 +575,6 @@ def PublishRelay(mqtt_id,device_Mac,relay_status):
     print(payload)
     print("startpub")
 # PublishRelay("F08E4B12E4CE","C5B024672C48","OFF")
+
+
 # -------------------------------mqtt code-------------------------
