@@ -6,4 +6,5 @@ Flask-Bcrypt
 email-validator
 requests
 flask_cors
-pycrypto
+pycryptodome
+Flask-reCaptcha

@@ -1,7 +1,9 @@
 from datetime import datetime
 import datetime
+from lib2to3.pytree import convert
 from Crypto.Cipher  import AES
 import base64
+import binascii
 
 # 金鑰（key）, 密斯偏移量（iv） CBC模式加密
 BLOCK_SIZE = 32  # Bytes
@@ -20,9 +22,17 @@ def encrypt(key, data):
     encodestrs = base64.b64encode(encryptedbytes)
     # 對byte字串按utf-8進行解碼
     enctext = encodestrs.decode('utf8')
+
+    enctext = str(binascii.hexlify(enctext.encode()))
+    enctext = enctext[2:]
+    enctext = enctext[:len(enctext)-1]
+
     return enctext
  
 def decrypt(key, data): 
+    data = bytes(data,'utf-8')
+    data = binascii.unhexlify(data).decode()
+
     data = data.encode('utf8')
     encodebytes = base64.decodebytes(data)
     # 將加密數據轉換位bytes型別數據
@@ -31,19 +41,24 @@ def decrypt(key, data):
     # 去補位
     text_decrypted = unpad(text_decrypted)
     text_decrypted = text_decrypted.decode('utf8')
+
     return text_decrypted
 
-def getSeconds():
+def getTime():
     now = datetime.datetime.now()
-    today_begin = datetime.datetime(now.year, now.month , now.day,0,0,0)
-    seconds = (now-today_begin).seconds
-    seconds = str(now.date())+str('/')+str(seconds)
-    return seconds
+    time = str(now.date()) + str('/') + str(now.hour) + str(':') + str(now.minute) + str(':') + str(now.second)
+    return time
 
 # key = "wentaiwentaiwentaiwentai"
-# time = getSeconds()
-# print(type(time))
-# s1 = encrypt(key, '?LINE_UUID=U6fa776bf93abd489c81ea1ceaca7a9a0&time='+time) 
-# s2 = decrypt(key, 'M548aeQznqJti0TnCPKlZY/dNFIUB4anwaxDNMsjuNdOcPK2GWytEjk+NK3KD1OS51K4vlop403V+2XdPl6Uvw==') 
+# time = getTime()
+
+# s1 = encrypt(key, 'ID=U6fa776bf93abd489c81ea1ceaca7a9a0&time='+time)
+# print(type(s1))
+# print('ID=U6fa776bf93abd489c81ea1ceaca7a9a0&time='+time)
 # print(s1)
+
+# print('---------')
+
+# s2 = decrypt(key, s1) 
+# print(type(s2))
 # print(s2)

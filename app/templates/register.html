@@ -1,6 +1,17 @@
 {% extends 'base1.html' %}
+
+{%block css_content%}
+<link href="{{url_for('static',filename='css/register.css')}}" rel="stylesheet">
+{% endblock %}
+
 {%block app_content%}
-<h1 class="pt-5">register</h1>
+
+<div class="list_log">
+    <!-- <div class="alert alert-danger" role="alert">
+        test
+    </div> -->
+</div>
+<h1 class="">register</h1>
 <div class="row">
 
     <div class="col-md-8">
@@ -9,25 +20,48 @@
             {{register_state}}
         </div>
         {%endif%}
-        <form action="" method="post">
-            <div class="form-group">
+        <form id="form_data">
+            <!-- <div class="form-group">
                 {%if line_uuid%}
                 <label for="disabledTextInput">Line_uuid</label>
                 <input readonly type="text" class="form-control" id="Line_uuid" name="Line_uuid" value="{{line_uuid}}" >
                 {%endif%}
+            </div> -->
+
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" class="form-control" id="user" name="user"
+                    required="required" oninput="setCustomValidity('');"
+                    ">
+            </div>
+
+            <div class="form-group ">
+                <label>Password</label>
+                <div class="input-group">
+                    <input type="password" class="form-control " id="password" name="password"
+                        required="required" oninput="setCustomValidity('');"
+                       ">
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-secondary" type="button"><img id="eye_img" src="{{url_for('static',filename='img/register/open_eye.svg')}}" alt=""></button>
+                    </div>
+                </div>
             </div>
 
             <div class="form-group">
-                <label for="disabledTextInput">Username</label>
-                <input type="text" class="form-control" id="user" name="user" pattern="^(?=.*[A-Za-z0-9]).{4,}$" required="required" oninput="setCustomValidity('');" oninvalid="setCustomValidity('請輸入正確的名稱格式:含至少四個字元')">
+                <label>confirm</label>
+                <input type="password" class="form-control" id="confirm" name="confirm"
+                    required="required" oninput="setCustomValidity('');"
+                    ">
             </div>
-            
-            <div class="form-group">
-                <label for="exampleInputPassword1">Password</label>
-                <input type="password" class="form-control" id="password" name="password" pattern="^(?=.*[A-Za-z0-9]).{6,}$" required="required" oninput="setCustomValidity('');" oninvalid="setCustomValidity('請輸入正確的密碼格式:含至少六個字元')">
-            </div>
-            <button type="submit" class="btn btn-primary">Submit</button>
+            <div class="pb-2" id="myCaptcha"></div>
+          
+            <button id="form_btn" type="submit" class="btn btn-primary">Submit</button>
         </form>
     </div>
 </div>
+{%endblock%}
+
+{%block js_content%}
+
+<script src="{{url_for('static',filename='js/register.js')}}"></script>
 {%endblock%}

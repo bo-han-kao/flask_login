@@ -89,16 +89,13 @@ th {
     .thead-sub{
         width: 15%;
     }
-    
     tr img {
         width: 40%;
     }
-
 }
 
 
 @media screen and (max-width:576px) {
-    
     .thead-delete{
         width: 20%;
     }

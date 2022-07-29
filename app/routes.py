@@ -8,13 +8,13 @@ import base64
 import time
 import os
 import crypt
-
+import requests
 from sqlalchemy import false, join, null, table,text, true, values,update,exists
 from sqlalchemy.sql import select
 
 from app import app,bcrypt,db
-import requests
-# from forms import RegisterForm
+from GoogleRecaptcha import GoogleRecaptcha
+
 from models import User,Notify_status
 import json
 # -------------------------------mqtt use-------------------------
@@ -23,7 +23,7 @@ import json
 import traceback
 from collections import defaultdict
 from package import mqtt_config, db_op
-
+# -------------------------------mqtt use-------------------------
 # Read configuration file.
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -61,28 +61,25 @@ def index():
 @app.route('/login',methods=['POST','GET'])
 def login():
     # 網址資訊
-
     parsed = urlparse.urlparse(request.url)
-    # key = "wentaiwentaiwentaiwentai"
-    # print(parsed.query,type(parsed.query))
-    # s2 = crypt.decrypt(key,'M548aeQznqJti0TnCPKlZY/dNFIUB4anwaxDNMsjuNdOcPK2GWytEjk+NK3KD1OS51K4vlop403V+2XdPl6Uvw==') 
-    # print(s2)
+    key = "wentaiwentaiwentaiwentai"
+    crypt_key=parsed.query
+    decrypt_key = crypt.decrypt(key,crypt_key) 
+    print(crypt_key,decrypt_key)
     # print((crypt.decrypt(key,'M548aeQznqJti0TnCPKlZY%2FdNFIUB4anwaxDNMsjuNdOcPK2GWytEjk+NK3KD1OS51K4vlop403V+2XdPl6Uvw==')))
     # print(parsed)
     # testdecrypt=decrypt(key,parsed)
     # 看網址是否含LINE_UUID參數
-    
-    print(request)
-    
-    groupQuery = 'LINE_UUID' in parse_qs(parsed.query)
+    groupQuery = 'ID' in parse_qs(decrypt_key)
     print(groupQuery)
     if groupQuery == True:
         # 取得line_uuid
-        line_uuid=parsed.query.split('=')[1]
+        line_uuid=decrypt_key.split('=')[1]
+        line_uuid=line_uuid.split('&')[0]
+        print(line_uuid)
         db_line_uuid=User.query.filter_by(Line_uuid=line_uuid).first()
         if str(db_line_uuid)=='None':
-            return redirect(url_for('register',LINE_UUID=line_uuid))
-
+            return redirect(url_for('register',input_value=crypt_key))
     if request.method == 'POST':
         user=request.form['user']
         password=request.form['password']
@@ -116,32 +113,68 @@ def logout():
 def register():
     # 網址資訊
     parsed = urlparse.urlparse(request.url)
-    groupQuery = 'LINE_UUID' in parse_qs(parsed.query)
-    line_uuid = False
+
+    groupQuery = 'ID' in parse_qs(parsed.query)
+    # line_uuid = False
     if groupQuery==True:
         line_uuid=parsed.query.split('=')[1]
-    
-    if request.method == 'POST':
-        user=request.form['user']
-        password=request.form['password']
-    
-        # 有重複user處理
-        if User.query.filter_by(username=user).first():
-            if line_uuid:
-                return render_template('register.html',register_state='名稱已被註冊',line_uuid=line_uuid)
+        if request.method == 'POST':
+            font_end_data=request.json
+            user=font_end_data['username']
+            password=font_end_data['password']
+            recaptcha_token=font_end_data['recaptcha_token']
+            #  有重複user處理
+            if User.query.filter_by(username=user.lower()).first():
+                return {"status":"401","msg":"duplicate_name"}
+            
+            elif User.query.filter_by(Line_uuid=line_uuid).first():
+                return {"status":"401","msg":"duplicate_Line_id"}
 
-        else:
-            # 對密碼加密(hash)
-            password=bcrypt.generate_password_hash(password).decode('utf-8')
-            if line_uuid:
-                line_uuid=request.form['Line_uuid']
-                user=User(username=user,password=password,Line_uuid=line_uuid)
             else:
-                user=User(username=user,password=password)
+                # google機器人驗證
+                Recaptcha=GoogleRecaptcha(recaptcha_token,request.url)
+                if (Recaptcha['success']==True):
+                    password=bcrypt.generate_password_hash(password).decode('utf-8')
+                    user=User(username=user.lower(),password=password,Line_uuid=line_uuid)
+                    print(user)
+                    db.session.add(user)
+                    db.session.commit()
+                    return {"status":"200","msg":"success register","redirect":url_for('login')}
+                else:
+                    return {"GoogleRecaptcha_log":Recaptcha['error-codes']}
+            #     if line_uuid:
+            #         user=User(username=user,password=password,Line_uuid=line_uuid)
+            #     else:
+            #         user=User(username=user,password=password)
                 
-            db.session.add(user)
-            db.session.commit()
-            return redirect(url_for('login'))
+            # db.session.add(user)
+            # db.session.commit()
+            # return redirect(url_for('login'))
+   
+
+    else:
+        return ('請從line_註冊帳戶')
+    # if request.method == 'POST':
+    #     user=request.form['user']
+    #     password=request.form['password']
+    
+    #     # 有重複user處理
+    #     if User.query.filter_by(username=user).first():
+    #         if line_uuid:
+    #             return render_template('register.html',register_state='名稱已被註冊',line_uuid=line_uuid)
+
+    #     else:
+    #         # 對密碼加密(hash)
+    #         password=bcrypt.generate_password_hash(password).decode('utf-8')
+    #         if line_uuid:
+    #             line_uuid=request.form['Line_uuid']
+    #             user=User(username=user,password=password,Line_uuid=line_uuid)
+    #         else:
+    #             user=User(username=user,password=password)
+                
+    #         db.session.add(user)
+    #         db.session.commit()
+    #         return redirect(url_for('login'))
     
     return render_template('register.html',line_uuid=line_uuid)
 
@@ -163,7 +196,7 @@ def line_notify_bind():
     body = {
         "grant_type": "authorization_code",
         "code": notify_code,
-        "redirect_uri": 'http://10.10.10.126:5000/line_notify_bind',
+        "redirect_uri": 'http://10.10.10.83:5000/line_notify_bind',
         "client_id": 'damgGNEOW7TW6vBtxoCWtt',
         "client_secret": 'ZWgOQ9CnOof0FHQNrvHhtTqAvjhBzHfecyELDWPSTqz'
     }
@@ -536,6 +569,7 @@ def subscribe():
             break
     print('Start subscribing...')
     client.loop_start()
+    return client
 
 
 def post_data(token, message, image):
@@ -574,7 +608,9 @@ def PublishRelay(mqtt_id,device_Mac,relay_status):
     print("mqtt_dongle/write/"+mqtt_id)
     print(payload)
     print("startpub")
+    
 # PublishRelay("F08E4B12E4CE","C5B024672C48","OFF")
+
 
 
 # -------------------------------mqtt code-------------------------
