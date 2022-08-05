@@ -23,7 +23,6 @@ $(document).ready(function () {
         return interval;
     }(), 5000)
 
-
     $('.page1_toggle').click(function () {
         var mainParent = $(this).parent('.toggle-btn');
         let select_device = $("#select_device").val();

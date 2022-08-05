@@ -1,31 +1,49 @@
 {% extends 'base1.html' %}
+
+{%block css_content%}
+<link href="{{url_for('static',filename='css/login.css')}}" rel="stylesheet">
+{% endblock %}
 {%block app_content%}
-<h1 class="pt-5">login</h1>
+
+
+<div class="list_log">
+    <!-- <div class="alert alert-danger" role="alert">
+        test
+    </div> -->
+</div>
+
+<h1 class="">login</h1>
 <div class="row">
     <div class="col-md-8">
-        {%if login_state%}
-        <div class="alert alert-danger" role="alert">
-            {{login_state}}
-        </div>
-        {%endif%}
-        <form action="/login" method="post">
+
+        <form id="form_data">
             <div class="form-group">
-                <label for="disabledTextInput">Username</label>
-                {%if UserNameText%}
-                <input disabled type="text" class="form-control" id="user" name="user">
-                {%else%}
-                <input type="text" class="form-control" id="user" name="user" >
-                {%endif%}
+                <label >Username</label>             
+                <input type="text" class="form-control" id="user" name="user" required="required" oninput="setCustomValidity('');" >
             </div>
-            
+
             <div class="form-group">
-                <label for="exampleInputPassword1">Password</label>
-                <input type="password" class="form-control" id="password" name="password">
+                <label>Password</label>
+                <div class="input-group">
+                    <input type="password" class="form-control" id="password" name="password" required="required" oninput="setCustomValidity('');">
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-secondary" type="button"><img id="eye_img"
+                                src="{{url_for('static',filename='img/register/open_eye.svg')}}" alt=""></button>
+                    </div>
+                </div>
+
             </div>
             <!-- <p>還沒進行註冊嗎?<a href="{{url_for('register')}}">註冊</a></p> -->
-            <button type="submit" class="btn btn-primary">登入</button>
-            
+
+            <!-- <div class="pb-2" id="myCaptcha"></div> -->
+
+            <button id="form_btn" type="submit" class="btn btn-primary">登入</button>
         </form>
     </div>
 </div>
+{%endblock%}
+
+{%block js_content%}
+<!-- <script src="https://www.google.com/recaptcha/api.js?render=explicit&onload=onReCaptchaLoad"></script> -->
+<script src="{{url_for('static',filename='js/login.js')}}"></script>
 {%endblock%}

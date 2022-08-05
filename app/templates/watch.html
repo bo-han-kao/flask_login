@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0" /> -->
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="{{url_for('static',filename='plugin/swiper8/swiper-bundle.min.css')}}">
+    <link rel="stylesheet" href="{{url_for('static',filename='css/watch.css')}}">
+</head>
+
+<body>
+    <main class="index-main">
+        <div class=" index-main d-flex align-items-center justify-content-center">
+          
+            <div class="watch ">
+                 
+                <div class="case">
+                    
+                    <div class="crown"></div>
+                    <div class="swiper mySwiper ">
+                        <div class="watch_date d-flex align-items-center justify-content-between">
+                            <p>2022/5/16</p>
+                            <div class="d-flex justify-content-end">
+                                <img class="" src="{{url_for('static',filename='img/watch/bluetooth_white.svg')}}" alt="">
+                                <img class="" src="{{url_for('static',filename='img/watch/battery_white.svg')}}" alt="">
+                            </div>
+                        </div>
+
+                        <!-- <div class="watch_search d-flex align-items-center justify-content-between">
+                            <p>2022/5/16</p>
+                            <div class="d-flex justify-content-end">
+                                <img class="" src="/images/bluetooth_white.svg" alt="">
+                                <img class="" src="/images/battery_white.svg" alt="">
+                            </div>
+                        </div> -->
+
+                        <div class="swiper-wrapper">
+                            <div class="swiper-slide">
+                                <div class="watch_view d-flex">
+                                   <div class="view_time d-flex align-items-center justify-content-center">
+                                    <p>12:51</p>
+                                   </div>
+                                   <div class="view_data">
+                                     <div class="data_row d-flex justify-content-between">
+                                        <div class="heart_rate data_box_setting">
+                                            <p>心率:<span>123</span>pbm</p>
+                                        </div>
+                                        <div class="blood_oxygen data_box_setting">
+                                            <p>血氧:<span>123</span>%</p>
+                                        </div>
+                                     </div>
+                                     <div class="data_row d-flex justify-content-between">
+                                        <div class="temperature data_box_setting">
+                                            <p>溫度:<span>123</span>°C</p>
+                                        </div>
+                                        <div class="Respiration_rate data_box_setting">
+                                            <p>呼吸頻率:<span>123</span>f/m</p>
+                                        </div>
+                                     </div>
+                                     <div class="data_row d-flex justify-content-between">
+                                        <div class="Stress data_box_setting">
+                                            <p>壓力:<span>123</span></p>
+                                        </div>
+                                        <div class="steps data_box_setting">
+                                            <p>步數:<span>123</span>Steps</p>
+                                        </div>
+                                     </div>
+                                   </div>
+                                </div>
+                            </div>
+                            <div class="swiper-slide">Slide 2</div>
+                            <div class="swiper-slide">Slide 3</div>
+                        </div>
+                        <div class="swiper-pagination pb-1"></div>
+                    </div>
+                    
+                </div>
+                <div class="strap strap-top"></div>
+                <div class="strap strap-bottom"></div>
+            </div>
+           
+        </div>
+    </main>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="{{url_for('static',filename='plugin/swiper8/swiper-bundle.min.js')}}"></script>
+    <script src="{{url_for('static',filename='js/watch.js')}}"></script>
+</body>
+
+</html>

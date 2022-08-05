@@ -49,8 +49,8 @@ def getTime():
     time = str(now.date()) + str('/') + str(now.hour) + str(':') + str(now.minute) + str(':') + str(now.second)
     return time
 
-# key = "wentaiwentaiwentaiwentai"
-# time = getTime()
+key = "wentaiwentaiwentaiwentai"
+time = getTime()
 
 # s1 = encrypt(key, 'ID=U6fa776bf93abd489c81ea1ceaca7a9a0&time='+time)
 # print(type(s1))

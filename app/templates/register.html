@@ -15,11 +15,6 @@
 <div class="row">
 
     <div class="col-md-8">
-        {%if register_state%}
-        <div class="alert alert-danger" role="alert">
-            {{register_state}}
-        </div>
-        {%endif%}
         <form id="form_data">
             <!-- <div class="form-group">
                 {%if line_uuid%}
@@ -53,7 +48,7 @@
                     required="required" oninput="setCustomValidity('');"
                     ">
             </div>
-            <div class="pb-2" id="myCaptcha"></div>
+            <!-- <div class="pb-2" id="myCaptcha"></div> -->
           
             <button id="form_btn" type="submit" class="btn btn-primary">Submit</button>
         </form>
@@ -62,6 +57,6 @@
 {%endblock%}
 
 {%block js_content%}
-
+<!-- <script src="https://www.google.com/recaptcha/api.js?render=explicit&onload=onReCaptchaLoad"></script>   -->
 <script src="{{url_for('static',filename='js/register.js')}}"></script>
 {%endblock%}

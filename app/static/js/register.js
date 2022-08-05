@@ -1,18 +1,18 @@
-var captchaWidgetId;   
-var recaptcha_token="";
-var onReCaptchaLoad = function() {   
+// var captchaWidgetId;   
+// var recaptcha_token="";
+// var onReCaptchaLoad = function() {   
   
-            captchaWidgetId = grecaptcha.render( 'myCaptcha', {   
-                'sitekey' : '6LfWPykhAAAAAHg0pYSkTHNnzYI2bDlQAUPXwCzt',  // required   
-                'theme' : 'light',  // optional   
-                'callback': 'verifyCallback'  // optional   
-            });   
-};   
+//             captchaWidgetId = grecaptcha.render( 'myCaptcha', {   
+//                 'sitekey' : '6LfWPykhAAAAAHg0pYSkTHNnzYI2bDlQAUPXwCzt',  // required   
+//                 'theme' : 'light',  // optional   
+//                 'callback': 'verifyCallback'  // optional   
+//             });   
+// };   
   
-var verifyCallback = function( recaptcha ) {   
-    //    console.log(recaptcha);
-       recaptcha_token=recaptcha;
-};  
+// var verifyCallback = function( recaptcha ) {   
+//     //    console.log(recaptcha);
+//        recaptcha_token=recaptcha;
+// };  
 
 $(document).ready(function () {
     var url_href = window.location.href
@@ -33,9 +33,9 @@ $(document).ready(function () {
         let username = $("input[name='user']");
         let password = $("input[name='password']");
         let confirm = $("input[name='confirm']");
-        console.log(recaptcha_token);
+        // console.log(recaptcha_token);
         if (password.val() == confirm.val()) {
-            let to_backend_data = { "password": password.val(), "username": username.val(),"recaptcha_token":recaptcha_token }
+            let to_backend_data = { "password": password.val(), "username": username.val()}
             $.ajax({
                 url: url_href,
                 type: "POST",
@@ -65,9 +65,6 @@ $(document).ready(function () {
             confirm.val("");
         }
 
-        if ($(".alert")) {
-            $(".alert").fadeOut(2500);
-        }
         setTimeout(function () {
             if ($(".alert")) {
                 $(".alert").fadeOut(2500);

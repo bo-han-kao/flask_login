@@ -43,7 +43,6 @@ DEVICE_TYPE = {
 
 mqtt_dongle_data = defaultdict(lambda: defaultdict(dict))
 # -------------------------------mqtt use-------------------------
-
 @app.before_request
 def login_require():
     if request.path in ['','/login','/register','/powermeter_list_device'] or '/static/' in request.path:
@@ -63,35 +62,41 @@ def login():
     # 網址資訊
     parsed = urlparse.urlparse(request.url)
     key = "wentaiwentaiwentaiwentai"
-    crypt_key=parsed.query
-    decrypt_key = crypt.decrypt(key,crypt_key) 
-    print(crypt_key,decrypt_key)
+ 
+    # print(crypt_key,decrypt_key)
     # print((crypt.decrypt(key,'M548aeQznqJti0TnCPKlZY%2FdNFIUB4anwaxDNMsjuNdOcPK2GWytEjk+NK3KD1OS51K4vlop403V+2XdPl6Uvw==')))
     # print(parsed)
     # testdecrypt=decrypt(key,parsed)
     # 看網址是否含LINE_UUID參數
-    groupQuery = 'ID' in parse_qs(decrypt_key)
-    print(groupQuery)
+    
+    groupQuery = 'key' in parse_qs(parsed.query)
     if groupQuery == True:
+        # print(parse_qs(parsed.query)['key'][0])
+        crypt_key=parse_qs(parsed.query)['key'][0]
+        decrypt_key = crypt.decrypt(key,crypt_key) 
         # 取得line_uuid
         line_uuid=decrypt_key.split('=')[1]
         line_uuid=line_uuid.split('&')[0]
-        print(line_uuid)
+        # print(line_uuid)
         db_line_uuid=User.query.filter_by(Line_uuid=line_uuid).first()
         if str(db_line_uuid)=='None':
-            return redirect(url_for('register',input_value=crypt_key))
+            return redirect(url_for('register',key=crypt_key))
     if request.method == 'POST':
-        user=request.form['user']
-        password=request.form['password']
+        font_end_data=request.json
+        user=font_end_data['username']
+        password=font_end_data['password']
+        # recaptcha_token=font_end_data['recaptcha_token']
+        print(user,password)
         # 找碴資料庫USER是否存在
+        user=user.lower()
         user=User.query.filter_by(username=user).first()
         # 判斷帳號密碼是否輸入正確
         if user and bcrypt.check_password_hash(user.password,password):
             flask_session['user'] = user.username
-            return redirect(url_for('user'))
+            return  {"status":"200","msg":"success login","redirect":url_for('user')}        
         else:
-            return render_template('login.html',login_state='登入失敗')
-    
+            return {"status":"401","msg":"登入失敗"}
+       
     return render_template('login.html')
 
 
@@ -113,45 +118,36 @@ def logout():
 def register():
     # 網址資訊
     parsed = urlparse.urlparse(request.url)
-
-    groupQuery = 'ID' in parse_qs(parsed.query)
-    # line_uuid = False
+    key = "wentaiwentaiwentaiwentai"
+    groupQuery = 'key' in parse_qs(parsed.query)
+    
     if groupQuery==True:
-        line_uuid=parsed.query.split('=')[1]
-        if request.method == 'POST':
-            font_end_data=request.json
-            user=font_end_data['username']
-            password=font_end_data['password']
-            recaptcha_token=font_end_data['recaptcha_token']
-            #  有重複user處理
-            if User.query.filter_by(username=user.lower()).first():
-                return {"status":"401","msg":"duplicate_name"}
-            
-            elif User.query.filter_by(Line_uuid=line_uuid).first():
-                return {"status":"401","msg":"duplicate_Line_id"}
+        # print(parsed.query)
+        try:
+            ID_key=parsed.query.split('=')[1]
+            ID_key=crypt.decrypt(key,ID_key)
+            line_uuid = parse_qs(ID_key)['ID'][0]
+            if request.method == 'POST':
+                font_end_data=request.json
+                user=font_end_data['username']
+                password=font_end_data['password']
+                # recaptcha_token=font_end_data['recaptcha_token']
+                #  有重複user處理
+                if User.query.filter_by(username=user.lower()).first():
+                    return {"status":"401","msg":"duplicate_name"}
+                
+                elif User.query.filter_by(Line_uuid=line_uuid).first():
+                    return {"status":"401","msg":"duplicate_Line_id"}
 
-            else:
-                # google機器人驗證
-                Recaptcha=GoogleRecaptcha(recaptcha_token,request.url)
-                if (Recaptcha['success']==True):
+                else:
                     password=bcrypt.generate_password_hash(password).decode('utf-8')
                     user=User(username=user.lower(),password=password,Line_uuid=line_uuid)
-                    print(user)
+                    # print(user)
                     db.session.add(user)
                     db.session.commit()
                     return {"status":"200","msg":"success register","redirect":url_for('login')}
-                else:
-                    return {"GoogleRecaptcha_log":Recaptcha['error-codes']}
-            #     if line_uuid:
-            #         user=User(username=user,password=password,Line_uuid=line_uuid)
-            #     else:
-            #         user=User(username=user,password=password)
-                
-            # db.session.add(user)
-            # db.session.commit()
-            # return redirect(url_for('login'))
-   
-
+        except:
+            return('line帳戶有誤')
     else:
         return ('請從line_註冊帳戶')
     # if request.method == 'POST':
@@ -376,6 +372,37 @@ def CO2():
         return(json.dumps(to_fondend_data))
     return render_template('CO2.html')
 
+@app.route('/watch',methods=['GET','POST'])
+def watch():
+    if request.method=='POST':
+        
+        to_fondend_data={
+                'Blood_Oxygen':'',
+                'Respiration_rate':'',
+                'Stress':'',
+                'RRI(HRV)':'',
+                'Stress_level':'',
+                'SBP':'',
+                'DBP':'',
+                'Calories':'',
+                'Temperature':'',
+                'Steps':'',
+                'Heart_rate':'',
+                'SOS':'',
+                'Battery':'',
+                'RSSI':''
+                }
+        mqtt_dongle_id=User.query.filter(User.username==flask_session['user']).first().mqtt_dongle_id
+        parsed = urlparse.urlparse(request.url)
+        watch_devicName=parsed.query.split('=')[1]
+        print(watch_devicName,mqtt_dongle_id)
+        pmd = mqtt_dongle_data[mqtt_dongle_id][watch_devicName][1:]
+        print(pmd)
+        for key, val in zip(to_fondend_data, pmd):
+                to_fondend_data[key] = val
+        return(json.dumps(to_fondend_data))
+    
+    return render_template('watch.html')
 # -------------------------------mqtt code-------------------------
 def on_connect(client, userdata, flags, rc):
     print(f'Connected with result code {rc}')
@@ -504,7 +531,7 @@ def get_device_data(topic, payload):
             image = 'app/static/img/switch.png'
             for token in tokens:
                 post_data(token[0], message, image)
-    elif device_type in ('PowerMeter', 'CO2_VOC_Temp'):
+    elif device_type in ('PowerMeter', 'CO2_VOC_Temp','smart_watch'):
         mqtt_dongle_data[mqtt_dongle_id][device_id] = data
     db = db_op.Database()
     with db:
